@@ -1,0 +1,171 @@
+# Custom Page Content Manager - Arabic Translation
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Custom Page Content Manager 2.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-12-23 16:30:00+0000\n"
+"PO-Revision-Date: 2025-12-23 16:30:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Arabic\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+msgid "Page Content Manager"
+msgstr "مدير محتوى الصفحات"
+
+msgid "Page Content"
+msgstr "محتوى الصفحات"
+
+msgid "Page not found"
+msgstr "الصفحة غير موجودة"
+
+msgid "You do not have permission to perform this action."
+msgstr "ليس لديك صلاحية لتنفيذ هذا الإجراء."
+
+msgid "Invalid page ID."
+msgstr "معرف الصفحة غير صالح."
+
+msgid "Invalid parameters."
+msgstr "معاملات غير صالحة."
+
+msgid "ID"
+msgstr "المعرف"
+
+msgid "Page Title"
+msgstr "عنوان الصفحة"
+
+msgid "Status"
+msgstr "الحالة"
+
+msgid "Fields"
+msgstr "الحقول"
+
+msgid "Actions"
+msgstr "الإجراءات"
+
+msgid "Published"
+msgstr "منشور"
+
+msgid "Draft"
+msgstr "مسودة"
+
+msgid "%s field"
+msgid_plural "%s fields"
+msgstr[0] "لا توجد حقول"
+msgstr[1] "حقل واحد"
+msgstr[2] "حقلان"
+msgstr[3] "%s حقول"
+msgstr[4] "%s حقلاً"
+msgstr[5] "%s حقل"
+
+msgid "Manage Fields"
+msgstr "إدارة الحقول"
+
+msgid "No pages found. Create a page first to manage its custom fields."
+msgstr "لا توجد صفحات. قم بإنشاء صفحة أولاً لإدارة حقولها المخصصة."
+
+msgid "Manage custom fields for your WordPress pages"
+msgstr "إدارة الحقول المخصصة لصفحات ووردبريس الخاصة بك"
+
+msgid "Edit Fields: %s"
+msgstr "تعديل حقول: %s"
+
+msgid "Back to Pages List"
+msgstr "العودة لقائمة الصفحات"
+
+msgid "Add New Field"
+msgstr "إضافة حقل جديد"
+
+msgid "Field Name"
+msgstr "اسم الحقل"
+
+msgid "e.g., Main Title, Hero Image, Description"
+msgstr "مثال: العنوان الرئيسي، الصورة البارزة، الوصف"
+
+msgid "Use a clear, descriptive name for this field"
+msgstr "استخدم اسماً واضحاً ووصفياً لهذا الحقل"
+
+msgid "Field Type"
+msgstr "نوع الحقل"
+
+msgid "Text (Short)"
+msgstr "نص قصير"
+
+msgid "Text (Long)"
+msgstr "نص طويل"
+
+msgid "Number"
+msgstr "رقم"
+
+msgid "Single Image"
+msgstr "صورة واحدة"
+
+msgid "Multiple Images"
+msgstr "عدة صور"
+
+msgid "Add Field"
+msgstr "إضافة الحقل"
+
+msgid "Existing Fields (%d)"
+msgstr "الحقول الموجودة (%d)"
+
+msgid "Type"
+msgstr "النوع"
+
+msgid "Value"
+msgstr "القيمة"
+
+msgid "Shortcode"
+msgstr "الشورت كود"
+
+msgid "Delete"
+msgstr "حذف"
+
+msgid "Save All Changes"
+msgstr "حفظ جميع التغييرات"
+
+msgid "No fields yet"
+msgstr "لا توجد حقول بعد"
+
+msgid "Add your first custom field using the form above to get started."
+msgstr "أضف أول حقل مخصص باستخدام النموذج أعلاه للبدء."
+
+msgid "Changes saved successfully!"
+msgstr "تم حفظ التغييرات بنجاح!"
+
+msgid "Field added successfully!"
+msgstr "تم إضافة الحقل بنجاح!"
+
+msgid "Field deleted successfully!"
+msgstr "تم حذف الحقل بنجاح!"
+
+msgid "A field with this name already exists!"
+msgstr "يوجد حقل بنفس الاسم بالفعل!"
+
+msgid "An error occurred. Please try again."
+msgstr "حدث خطأ. يرجى المحاولة مرة أخرى."
+
+msgid "Are you sure you want to delete this field? This will also delete its value!"
+msgstr "هل أنت متأكد من حذف هذا الحقل؟ سيتم حذف قيمته أيضاً!"
+
+msgid "Copied to clipboard!"
+msgstr "تم النسخ!"
+
+msgid "Made with %s by %s"
+msgstr "صُنع بـ %s بواسطة %s"
+
+msgid "Yossef Weal"
+msgstr "يوسف وائل"
+
+msgid "Choose Image"
+msgstr "اختر صورة"
+
+msgid "Add Images"
+msgstr "إضافة صور"
+
+msgid "Remove image"
+msgstr "إزالة الصورة"
