@@ -58,29 +58,6 @@ if (isset($_GET['message'])) {
             <?php echo esc_html(sprintf(__('Edit Fields: %s', 'custom-page-content-manager'), $page->post_title)); ?>
         </h1>
         <div class="cpcm-header-actions">
-            <button type="button" class="button cpcm-btn-add-modal-trigger">
-                <span class="dashicons dashicons-plus"></span>
-                <?php echo esc_html__('Add New Field', 'custom-page-content-manager'); ?>
-            </button>
-            <?php 
-            $translations = $this->get_post_translations($page_id);
-            if (!empty($translations)):
-                foreach ($translations as $lang_code => $translation):
-            ?>
-                <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline-block;">
-                    <?php wp_nonce_field('cpcm_import_fields_' . $page_id); ?>
-                    <input type="hidden" name="action" value="cpcm_import_fields">
-                    <input type="hidden" name="page_id" value="<?php echo esc_attr($page_id); ?>">
-                    <input type="hidden" name="source_page_id" value="<?php echo esc_attr($translation['id']); ?>">
-                    <button type="submit" class="button cpcm-btn-import" onclick="return confirm('<?php echo esc_js(sprintf(__('Are you sure you want to import fields from %s? This will overwrite existing fields with the same name.', 'custom-page-content-manager'), $translation['name'])); ?>');">
-                        <span class="dashicons dashicons-translation"></span>
-                        <?php echo esc_html(sprintf(__('Import from %s', 'custom-page-content-manager'), $translation['name'])); ?>
-                    </button>
-                </form>
-            <?php 
-                endforeach;
-            endif; 
-            ?>
             <a href="<?php echo esc_url(admin_url('admin.php?page=page-content-manager')); ?>" class="button cpcm-btn-back">
                 <span class="dashicons dashicons-arrow-left-alt2"></span>
                 <?php echo esc_html__('Back to Pages List', 'custom-page-content-manager'); ?>
@@ -93,10 +70,43 @@ if (isset($_GET['message'])) {
     <!-- Existing Fields Section -->
     <?php if (!empty($fields)): ?>
     <div class="cpcm-card">
-        <h2 class="cpcm-card-title">
-            <span class="dashicons dashicons-admin-settings"></span>
-            <?php echo esc_html(sprintf(__('Existing Fields (%d)', 'custom-page-content-manager'), count($fields))); ?>
-        </h2>
+        <div class="cpcm-card-header-with-actions">
+            <h2 class="cpcm-card-title">
+                <span class="dashicons dashicons-admin-settings"></span>
+                <?php echo esc_html(sprintf(__('Existing Fields (%d)', 'custom-page-content-manager'), count($fields))); ?>
+            </h2>
+            <div class="cpcm-card-actions">
+                <button type="button" class="button cpcm-btn-header-action cpcm-btn-add-modal-trigger">
+                    <span class="dashicons dashicons-plus"></span>
+                    <?php echo esc_html__('Add Field', 'custom-page-content-manager'); ?>
+                </button>
+                
+                <?php if (!empty($translations)): ?>
+                    <?php foreach ($translations as $lang_code => $translation): ?>
+                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline-block;">
+                            <?php wp_nonce_field('cpcm_import_fields_' . $page_id); ?>
+                            <input type="hidden" name="action" value="cpcm_import_fields">
+                            <input type="hidden" name="page_id" value="<?php echo esc_attr($page_id); ?>">
+                            <input type="hidden" name="source_page_id" value="<?php echo esc_attr($translation['id']); ?>">
+                            <button type="submit" class="button cpcm-btn-header-action cpcm-btn-import-lang" onclick="return confirm('<?php echo esc_js(sprintf(__('Are you sure you want to import fields from %s? This will overwrite existing fields with the same name.', 'custom-page-content-manager'), $translation['name'])); ?>');">
+                                <span class="dashicons dashicons-translation"></span>
+                                <?php echo esc_html(sprintf(__('Import (%s)', 'custom-page-content-manager'), strtoupper($lang_code))); ?>
+                            </button>
+                        </form>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+
+                <button type="submit" form="cpcm-main-save-form" class="button cpcm-btn-header-action cpcm-btn-save-all" disabled>
+                    <span class="dashicons dashicons-saved"></span>
+                    <?php echo esc_html__('Save', 'custom-page-content-manager'); ?>
+                </button>
+
+                <button type="button" class="button cpcm-btn-header-action cpcm-btn-reset-fields" disabled>
+                    <span class="dashicons dashicons-undo"></span>
+                    <?php echo esc_html__('Reset', 'custom-page-content-manager'); ?>
+                </button>
+            </div>
+        </div>
         
         <form id="cpcm-main-save-form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="cpcm-form">
             <?php wp_nonce_field('cpcm_save_fields_' . $page_id); ?>
@@ -223,15 +233,6 @@ if (isset($_GET['message'])) {
                     </tbody>
                 </table>
             </div>
-            
-            <div class="cpcm-form-actions">
-                <button type="submit" class="button button-primary cpcm-btn-save-all">
-                    <span class="dashicons dashicons-saved"></span>
-                    <?php echo esc_html__('Save All Changes', 'custom-page-content-manager'); ?>
-                </button>
-            </div>
-        </form>
-    </div>
         </form>
     </div>
     <?php else: ?>

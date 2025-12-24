@@ -70,6 +70,7 @@
           $(this).remove();
           updateEmptyState();
         });
+        trackChanges();
         showNotification("Field removed from list (Save to persist)", "info");
       }
     });
@@ -230,6 +231,33 @@
     }
 
     /**
+     * Change Tracking System
+     */
+    var hasChanges = false;
+    var $saveButton = $(".cpcm-btn-save-all");
+    var $resetButton = $(".cpcm-btn-reset-fields");
+
+    function trackChanges() {
+      hasChanges = true;
+      $saveButton.prop("disabled", false);
+      $resetButton.prop("disabled", false);
+    }
+
+    /**
+     * Reset Functionality
+     */
+    $(document).on("click", ".cpcm-btn-reset-fields", function (e) {
+      e.preventDefault();
+      if (
+        confirm(
+          "Are you sure you want to discard all unsaved changes and reload?"
+        )
+      ) {
+        location.reload();
+      }
+    });
+
+    /**
      * Apply Add Field
      */
     $(".cpcm-btn-apply-add").on("click", function () {
@@ -290,6 +318,7 @@
 
       $("#cpcm-fields-tbody").append(rowHtml);
       closeModal();
+      trackChanges();
       showNotification("Field added to list (Save to persist)", "success");
 
       // Clear add form
@@ -349,6 +378,7 @@
       $('tr[data-field-key="' + key + '"]').replaceWith(rowHtml);
 
       closeModal();
+      trackChanges();
       showNotification("Field updated in list (Save to persist)", "success");
     });
 

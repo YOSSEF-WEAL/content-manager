@@ -254,37 +254,116 @@
   transform: translateY(1px);
 }
 
-.cpcm-btn-save-all {
-  display: inline-flex !important;
+/* ===========================
+   Card Header Actions
+   =========================== */
+
+.cpcm-card-header-with-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 30px;
+  background: #f8f9fa;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.cpcm-card-header-with-actions .cpcm-card-title {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.cpcm-card-actions {
+  display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 32px !important;
-  border-radius: 8px;
-  font-weight: 700;
-  font-size: 16px;
-  transition: all 0.3s ease;
-  background: #10b981 !important;
-  border: none !important;
-  color: #fff !important;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  text-decoration: none !important;
+}
+
+.cpcm-btn-header-action {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px !important;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  background: #fff !important;
+  border: 1px solid #d1d5db !important;
+  color: #374151 !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
   line-height: 1.4;
   height: auto !important;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
 }
 
-.cpcm-btn-save-all:hover {
+.cpcm-btn-header-action:hover:not(:disabled) {
+  background: #f3f4f6 !important;
+  border-color: #9ca3af !important;
+}
+
+.cpcm-btn-header-action:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.cpcm-btn-header-action .dashicons {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.cpcm-btn-header-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f9fafb !important;
+  color: #9ca3af !important;
+  border-color: #e5e7eb !important;
+}
+
+/* Specific colors for header actions */
+.cpcm-btn-add-modal-trigger.cpcm-btn-header-action {
+  background: #667eea !important;
+  border-color: #5a67d8 !important;
+  color: #fff !important;
+}
+
+.cpcm-btn-add-modal-trigger.cpcm-btn-header-action:hover:not(:disabled) {
+  background: #5a67d8 !important;
+}
+
+.cpcm-btn-import-lang.cpcm-btn-header-action {
+  background: #fff !important;
+  border-color: #e5e7eb !important;
+  color: #374151 !important;
+}
+
+.cpcm-btn-reset-fields.cpcm-btn-header-action {
+  background: #fff !important;
+  border-color: #fca5a5 !important;
+  color: #dc2626 !important;
+}
+
+.cpcm-btn-reset-fields.cpcm-btn-header-action:hover:not(:disabled) {
+  background: #fef2f2 !important;
+  border-color: #f87171 !important;
+}
+
+.cpcm-btn-save-all.cpcm-btn-header-action {
+  background: #10b981 !important;
+  border-color: #059669 !important;
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+
+.cpcm-btn-save-all.cpcm-btn-header-action:hover:not(:disabled) {
   background: #059669 !important;
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3);
+  transform: translateY(-1px);
 }
 
-.cpcm-btn-save-all .dashicons {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
+.cpcm-btn-save-all.cpcm-btn-header-action:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .cpcm-btn-import {
