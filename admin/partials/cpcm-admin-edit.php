@@ -98,7 +98,7 @@ if (isset($_GET['message'])) {
             <?php echo esc_html(sprintf(__('Existing Fields (%d)', 'custom-page-content-manager'), count($fields))); ?>
         </h2>
         
-        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="cpcm-form">
+        <form id="cpcm-main-save-form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="cpcm-form">
             <?php wp_nonce_field('cpcm_save_fields_' . $page_id); ?>
             <input type="hidden" name="action" value="cpcm_save_fields">
             <input type="hidden" name="page_id" value="<?php echo esc_attr($page_id); ?>">
@@ -114,11 +114,13 @@ if (isset($_GET['message'])) {
                             <th class="cpcm-th-actions"><?php echo esc_html__('Actions', 'custom-page-content-manager'); ?></th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="cpcm-fields-tbody">
                         <?php foreach ($fields as $field_key => $field): ?>
-                        <tr>
+                        <tr data-field-key="<?php echo esc_attr($field_key); ?>">
                             <td class="cpcm-td-name">
                                 <strong><?php echo esc_html($field['name']); ?></strong>
+                                <input type="hidden" name="cpcm_field_registry[<?php echo esc_attr($field_key); ?>][name]" value="<?php echo esc_attr($field['name']); ?>">
+                                <input type="hidden" name="cpcm_field_registry[<?php echo esc_attr($field_key); ?>][type]" value="<?php echo esc_attr($field['type']); ?>">
                             </td>
                             <td class="cpcm-td-type">
                                 <span class="cpcm-type-badge cpcm-type-<?php echo esc_attr($field['type']); ?>">
@@ -145,7 +147,7 @@ if (isset($_GET['message'])) {
                                     if ($current_value) {
                                         $image_url = wp_get_attachment_image_url($current_value, 'thumbnail');
                                         if ($image_url) {
-                                            echo '<img src="' . esc_url($image_url) . '" alt="" class="cpcm-table-row-preview">';
+                                            echo '<div class="cpcm-row-preview-container"><img src="' . esc_url($image_url) . '" alt="" class="cpcm-table-row-preview"></div>';
                                             $preview_data = $image_url;
                                         } else {
                                             echo '<span class="description">' . esc_html__('Image not found', 'custom-page-content-manager') . '</span>';
@@ -183,9 +185,10 @@ if (isset($_GET['message'])) {
                                 } elseif ($field['type'] === 'longtext') {
                                     echo '<div class="cpcm-table-text-preview">' . nl2br(esc_html(mb_strimwidth($current_value, 0, 100, '...'))) . '</div>';
                                 } else {
-                                    echo esc_html($current_value);
+                                    echo '<div class="cpcm-table-text-preview">' . esc_html($current_value) . '</div>';
                                 }
                                 ?>
+                                <input type="hidden" name="cpcm_fields[<?php echo esc_attr($field_key); ?>]" value="<?php echo esc_attr($current_value); ?>" class="cpcm-row-value-input">
                             </td>
                             <td class="cpcm-td-shortcode">
                                 <div class="cpcm-shortcode-wrapper">
@@ -204,19 +207,16 @@ if (isset($_GET['message'])) {
                                         data-field-name="<?php echo esc_attr($field['name']); ?>"
                                         data-field-type="<?php echo esc_attr($field['type']); ?>"
                                         data-field-value="<?php echo esc_attr($current_value); ?>"
-                                        data-preview="<?php echo esc_attr($field['type'] === 'multi_images' ? $preview_data : $preview_data); ?>">
+                                        data-preview='<?php echo esc_attr($preview_data); ?>'>
                                     <span class="dashicons dashicons-edit"></span>
                                     <?php echo esc_html__('Edit', 'custom-page-content-manager'); ?>
                                 </button>
-                                <a href="<?php echo esc_url(wp_nonce_url(
-                                    admin_url('admin-post.php?action=cpcm_delete_field&page_id=' . $page_id . '&field_key=' . $field_key),
-                                    'cpcm_delete_field_' . $page_id . '_' . $field_key
-                                )); ?>" 
-                                   class="button button-small cpcm-btn-delete"
+                                <button type="button" 
+                                   class="button button-small cpcm-btn-delete-local"
                                    data-field-name="<?php echo esc_attr($field['name']); ?>">
                                     <span class="dashicons dashicons-trash"></span>
                                     <?php echo esc_html__('Delete', 'custom-page-content-manager'); ?>
-                                </a>
+                                </button>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -224,7 +224,12 @@ if (isset($_GET['message'])) {
                 </table>
             </div>
             
-            <!-- Remove 'Save All Changes' button as saving is now done per field via modal -->
+            <div class="cpcm-form-actions">
+                <button type="submit" class="button button-primary cpcm-btn-save-all">
+                    <span class="dashicons dashicons-saved"></span>
+                    <?php echo esc_html__('Save All Changes', 'custom-page-content-manager'); ?>
+                </button>
+            </div>
         </form>
     </div>
         </form>
@@ -253,9 +258,7 @@ if (isset($_GET['message'])) {
                 </button>
             </div>
             
-            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="cpcm-modal-form">
-                <?php wp_nonce_field('cpcm_add_field_' . $page_id); ?>
-                <input type="hidden" name="action" value="cpcm_add_field">
+            <div class="cpcm-modal-form">
                 <input type="hidden" name="page_id" value="<?php echo esc_attr($page_id); ?>">
                 
                 <div class="cpcm-modal-body">
@@ -337,12 +340,12 @@ if (isset($_GET['message'])) {
                     <button type="button" class="button cpcm-modal-cancel">
                         <?php echo esc_html__('Cancel', 'custom-page-content-manager'); ?>
                     </button>
-                    <button type="submit" class="button button-primary cpcm-btn-save">
+                    <button type="button" class="button button-primary cpcm-btn-apply-add">
                         <span class="dashicons dashicons-plus"></span>
-                        <?php echo esc_html__('Add Field', 'custom-page-content-manager'); ?>
+                        <?php echo esc_html__('Apply Changes', 'custom-page-content-manager'); ?>
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -360,9 +363,7 @@ if (isset($_GET['message'])) {
                 </button>
             </div>
             
-            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="cpcm-modal-form">
-                <?php wp_nonce_field('cpcm_edit_field_' . $page_id); ?>
-                <input type="hidden" name="action" value="cpcm_edit_field">
+            <div class="cpcm-modal-form">
                 <input type="hidden" name="page_id" value="<?php echo esc_attr($page_id); ?>">
                 <input type="hidden" name="field_key" id="edit_field_key" value="">
                 
@@ -448,12 +449,12 @@ if (isset($_GET['message'])) {
                     <button type="button" class="button cpcm-modal-cancel">
                         <?php echo esc_html__('Cancel', 'custom-page-content-manager'); ?>
                     </button>
-                    <button type="submit" class="button button-primary cpcm-btn-save">
+                    <button type="button" class="button button-primary cpcm-btn-apply-edit">
                         <span class="dashicons dashicons-yes"></span>
-                        <?php echo esc_html__('Save Changes', 'custom-page-content-manager'); ?>
+                        <?php echo esc_html__('Apply Changes', 'custom-page-content-manager'); ?>
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
     

@@ -249,8 +249,42 @@
 
 .cpcm-btn-add:active,
 .cpcm-btn-save:active,
-.cpcm-btn-add-modal-trigger:active {
+.cpcm-btn-add-modal-trigger:active,
+.cpcm-btn-save-all:active {
   transform: translateY(1px);
+}
+
+.cpcm-btn-save-all {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px !important;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: #10b981 !important;
+  border: none !important;
+  color: #fff !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-decoration: none !important;
+  line-height: 1.4;
+  height: auto !important;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+}
+
+.cpcm-btn-save-all:hover {
+  background: #059669 !important;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+}
+
+.cpcm-btn-save-all .dashicons {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 
 .cpcm-btn-import {
@@ -286,7 +320,8 @@
   flex-shrink: 0;
 }
 
-.cpcm-btn-delete {
+.cpcm-btn-delete,
+.cpcm-btn-delete-local {
   color: #dc2626;
   border: 1px solid #fca5a5;
   background: #fef2f2;
@@ -384,13 +419,15 @@
   color: #111827 !important;
 }
 
-.cpcm-fields-table .cpcm-btn-delete {
+.cpcm-fields-table .cpcm-btn-delete,
+.cpcm-fields-table .cpcm-btn-delete-local {
   color: #dc2626 !important;
   background-color: #fef2f2 !important;
   border-color: #fca5a5 !important;
 }
 
-.cpcm-fields-table .cpcm-btn-delete:hover {
+.cpcm-fields-table .cpcm-btn-delete:hover,
+.cpcm-fields-table .cpcm-btn-delete-local:hover {
   background-color: #fee2e2 !important;
   border-color: #f87171 !important;
   color: #b91c1c !important;
@@ -412,7 +449,8 @@
   color: inherit;
 }
 
-.cpcm-fields-table .cpcm-btn-delete .dashicons {
+.cpcm-fields-table .cpcm-btn-delete .dashicons,
+.cpcm-fields-table .cpcm-btn-delete-local .dashicons {
   font-size: 14px;
   width: 14px;
   height: 14px;
@@ -725,6 +763,7 @@ body.rtl .cpcm-btn-edit,
 body.rtl .cpcm-btn-add,
 body.rtl .cpcm-btn-save,
 body.rtl .cpcm-btn-delete,
+body.rtl .cpcm-btn-delete-local,
 body.rtl .cpcm-status,
 body.rtl .cpcm-field-count,
 body.rtl .cpcm-type-badge {

@@ -51,9 +51,11 @@
     });
 
     /**
-     * Confirm field deletion
+     * Local Field Deletion
      */
-    $(".cpcm-btn-delete").on("click", function (e) {
+    $(document).on("click", ".cpcm-btn-delete-local", function (e) {
+      e.preventDefault();
+      var $row = $(this).closest("tr");
       var fieldName = $(this).data("field-name");
       var confirmMessage =
         cpcmAdmin.confirmDelete ||
@@ -63,259 +65,293 @@
         confirmMessage = confirmMessage.replace("%s", fieldName);
       }
 
-      if (!confirm(confirmMessage)) {
-        e.preventDefault();
-        return false;
+      if (confirm(confirmMessage)) {
+        $row.fadeOut(300, function () {
+          $(this).remove();
+          updateEmptyState();
+        });
+        showNotification("Field removed from list (Save to persist)", "info");
       }
     });
 
-    /**
-     * Toast Notifications System
-     */
-    var $notificationsContainer;
-
-    function showNotification(message, type) {
-      type = type || "info";
-
-      // Create container if it doesn't exist
-      if (!$notificationsContainer || !$notificationsContainer.length) {
-        $notificationsContainer = $(
-          '<div class="cpcm-notifications-container"></div>'
-        );
-        $("body").append($notificationsContainer);
-      }
-
-      // Icon mapping
-      var icons = {
-        success: "yes-alt",
-        error: "warning",
-        info: "info",
-      };
-      var icon = icons[type] || "info";
-
-      // Create toast HTML
-      var $toast = $(
-        '<div class="cpcm-toast cpcm-toast-' +
-          type +
-          '">' +
-          '<div class="cpcm-toast-icon"><span class="dashicons dashicons-' +
-          icon +
-          '"></span></div>' +
-          '<div class="cpcm-toast-content">' +
-          '<p class="cpcm-toast-message">' +
-          message +
-          "</p>" +
-          "</div>" +
-          '<div class="cpcm-toast-close"><span class="dashicons dashicons-no-alt"></span></div>' +
-          '<div class="cpcm-toast-progress"></div>' +
-          "</div>"
-      );
-
-      $notificationsContainer.append($toast);
-
-      // Trigger animation
-      setTimeout(function () {
-        $toast.addClass("active");
-      }, 100);
-
-      // Auto-remove after 5 seconds
-      var timeout = setTimeout(function () {
-        removeToast($toast);
-      }, 5000);
-
-      // Close button handler
-      $toast.find(".cpcm-toast-close").on("click", function () {
-        clearTimeout(timeout);
-        removeToast($toast);
-      });
-
-      function removeToast($t) {
-        $t.removeClass("active");
-        setTimeout(function () {
-          $t.remove();
-        }, 500);
+    function updateEmptyState() {
+      if ($("#cpcm-fields-tbody tr").length === 0) {
+        location.reload(); // Simplest way to show empty state from PHP
       }
     }
 
     /**
-     * Handle initial notifications on page load
+     * Helper to generate row HTML
      */
-    $(".cpcm-wrap .notice").each(function () {
-      var $notice = $(this);
-      var message = $notice.find("p").text();
-      var type = "info";
+    function generateRowHtml(key, name, type, value, preview) {
+      var pageId = $('input[name="page_id"]').val();
+      var typeIcons = {
+        text: "editor-textcolor",
+        longtext: "media-text",
+        number: "calculator",
+        single_image: "format-image",
+        multi_images: "images-alt2",
+      };
+      var icon = typeIcons[type] || "admin-generic";
+      var typeLabel =
+        type.charAt(0).toUpperCase() + type.slice(1).replace("_", " ");
 
-      if ($notice.hasClass("notice-success")) type = "success";
-      if ($notice.hasClass("notice-error")) type = "error";
+      var valueDisplay = value;
+      var previewDataAttr = "";
 
-      // Hide original and show toast
-      $notice.hide();
-      showNotification(message, type);
-    });
+      if (type === "single_image") {
+        if (preview && typeof preview === "string") {
+          valueDisplay =
+            '<div class="cpcm-row-preview-container"><img src="' +
+            preview +
+            '" alt="" class="cpcm-table-row-preview"></div>';
+          previewDataAttr = preview;
+        } else {
+          valueDisplay = '<span class="description">No image selected</span>';
+        }
+      } else if (type === "multi_images") {
+        var images = [];
+        if (typeof preview === "string" && preview.startsWith("[")) {
+          try {
+            images = JSON.parse(preview);
+          } catch (e) {}
+        } else if (Array.isArray(preview)) {
+          images = preview;
+        }
 
-    /**
-     * Form validation
-     */
-
-    /**
-     * Form validation
-     */
-    $("form.cpcm-form").on("submit", function (e) {
-      var $form = $(this);
-      var $fieldName = $form.find('input[name="field_name"]');
-
-      if ($fieldName.length && !$fieldName.val().trim()) {
-        e.preventDefault();
-        $fieldName.focus();
-        showNotification("Please enter a field name.", "error");
-        return false;
-      }
-    });
-
-    /**
-     * WordPress Media Library - Single Image Upload
-     */
-    var mediaUploader;
-
-    $(".cpcm-upload-image").on("click", function (e) {
-      e.preventDefault();
-
-      // Check if wp.media is available
-      if (typeof wp === "undefined" || typeof wp.media === "undefined") {
-        console.error("WordPress media library is not loaded");
-        alert("Error: Media library not loaded. Please refresh the page.");
-        return;
-      }
-
-      var $button = $(this);
-      var $wrapper = $button.closest(".cpcm-image-upload-wrapper");
-      var $input = $wrapper.find(".cpcm-image-id");
-      var $preview = $wrapper.find(".cpcm-image-preview");
-
-      // If the uploader object has already been created, reopen the dialog
-      if (mediaUploader) {
-        mediaUploader.open();
-        return;
-      }
-
-      // Extend the wp.media object
-      mediaUploader = wp.media.frames.file_frame = wp.media({
-        title: "Choose Image",
-        button: {
-          text: "Choose Image",
-        },
-        multiple: false,
-      });
-
-      // When a file is selected, run a callback
-      mediaUploader.on("select", function () {
-        var attachment = mediaUploader
-          .state()
-          .get("selection")
-          .first()
-          .toJSON();
-
-        $input.val(attachment.id);
-
-        var imageUrl = attachment.sizes.medium
-          ? attachment.sizes.medium.url
-          : attachment.url;
-
-        $preview.html(
-          '<img src="' +
-            imageUrl +
-            '" alt="">' +
-            '<button type="button" class="cpcm-remove-image" title="Remove image">' +
-            '<span class="dashicons dashicons-no-alt"></span>' +
-            "</button>"
-        );
-      });
-
-      // Open the uploader dialog
-      mediaUploader.open();
-    });
-
-    // Remove single image
-    $(document).on("click", ".cpcm-remove-image", function (e) {
-      e.preventDefault();
-      var $wrapper = $(this).closest(".cpcm-image-upload-wrapper");
-      $wrapper.find(".cpcm-image-id").val("");
-      $wrapper.find(".cpcm-image-preview").html("");
-    });
-
-    /**
-     * WordPress Media Library - Multiple Images Upload
-     */
-    var multiMediaUploader;
-
-    $(".cpcm-upload-multi-images").on("click", function (e) {
-      e.preventDefault();
-
-      var $button = $(this);
-      var $wrapper = $button.closest(".cpcm-multi-image-wrapper");
-      var $input = $wrapper.find(".cpcm-multi-image-ids");
-      var $preview = $wrapper.find(".cpcm-multi-image-preview");
-
-      // Create the media frame
-      multiMediaUploader = wp.media.frames.file_frame = wp.media({
-        title: "Choose Images",
-        button: {
-          text: "Add Images",
-        },
-        multiple: true,
-      });
-
-      // When images are selected
-      multiMediaUploader.on("select", function () {
-        var attachments = multiMediaUploader.state().get("selection").toJSON();
-
-        var currentIds = $input.val() ? $input.val().split(",") : [];
-
-        attachments.forEach(function (attachment) {
-          if (currentIds.indexOf(attachment.id.toString()) === -1) {
-            currentIds.push(attachment.id);
-
-            var imageUrl = attachment.sizes.thumbnail
-              ? attachment.sizes.thumbnail.url
-              : attachment.url;
-
-            $preview.append(
-              '<div class="cpcm-multi-image-item" data-id="' +
-                attachment.id +
-                '">' +
-                '<img src="' +
-                imageUrl +
-                '" alt="">' +
-                '<button type="button" class="cpcm-remove-multi-image">' +
-                '<span class="dashicons dashicons-no-alt"></span>' +
-                "</button>" +
-                "</div>"
-            );
+        if (images.length > 0) {
+          valueDisplay = '<div class="cpcm-table-gallery-preview">';
+          images.slice(0, 3).forEach(function (img) {
+            valueDisplay += '<img src="' + img.url + '" alt="">';
+          });
+          if (images.length > 3) {
+            valueDisplay +=
+              '<span class="cpcm-gallery-more">+' +
+              (images.length - 3) +
+              "</span>";
           }
+          valueDisplay += "</div>";
+          previewDataAttr = JSON.stringify(images);
+        } else {
+          valueDisplay = '<span class="description">No images selected</span>';
+        }
+      } else if (type === "longtext") {
+        valueDisplay =
+          '<div class="cpcm-table-text-preview">' +
+          (value.length > 100 ? value.substring(0, 100) + "..." : value) +
+          "</div>";
+      } else {
+        valueDisplay =
+          '<div class="cpcm-table-text-preview">' + value + "</div>";
+      }
+
+      var shortcode = '[cpcm_field id="' + pageId + '" field="' + key + '"]';
+
+      return (
+        '<tr data-field-key="' +
+        key +
+        '">' +
+        '<td class="cpcm-td-name">' +
+        "<strong>" +
+        name +
+        "</strong>" +
+        '<input type="hidden" name="cpcm_field_registry[' +
+        key +
+        '][name]" value="' +
+        name +
+        '">' +
+        '<input type="hidden" name="cpcm_field_registry[' +
+        key +
+        '][type]" value="' +
+        type +
+        '">' +
+        "</td>" +
+        '<td class="cpcm-td-type">' +
+        '<span class="cpcm-type-badge cpcm-type-' +
+        type +
+        '">' +
+        '<span class="dashicons dashicons-' +
+        icon +
+        '"></span> ' +
+        typeLabel +
+        "</span>" +
+        "</td>" +
+        '<td class="cpcm-td-value">' +
+        valueDisplay +
+        '<input type="hidden" name="cpcm_fields[' +
+        key +
+        ']" value="' +
+        value +
+        '" class="cpcm-row-value-input">' +
+        "</td>" +
+        '<td class="cpcm-td-shortcode">' +
+        '<div class="cpcm-shortcode-wrapper">' +
+        '<code class="cpcm-shortcode" data-shortcode=\'' +
+        shortcode +
+        "'>" +
+        shortcode +
+        "</code>" +
+        '<button type="button" class="button button-small cpcm-btn-copy" data-clipboard=\'' +
+        shortcode +
+        "'>" +
+        '<span class="dashicons dashicons-clipboard"></span>' +
+        "</button>" +
+        "</div>" +
+        "</td>" +
+        '<td class="cpcm-td-actions">' +
+        '<button type="button" class="button button-small cpcm-btn-edit-field" ' +
+        'data-field-key="' +
+        key +
+        '" ' +
+        'data-field-name="' +
+        name +
+        '" ' +
+        'data-field-type="' +
+        type +
+        '" ' +
+        'data-field-value="' +
+        value +
+        '" ' +
+        "data-preview='" +
+        (typeof previewDataAttr === "string"
+          ? previewDataAttr
+          : JSON.stringify(previewDataAttr)) +
+        "'>" +
+        '<span class="dashicons dashicons-edit"></span> Edit' +
+        "</button> " +
+        '<button type="button" class="button button-small cpcm-btn-delete-local" data-field-name="' +
+        name +
+        '">' +
+        '<span class="dashicons dashicons-trash"></span> Delete' +
+        "</button>" +
+        "</td>" +
+        "</tr>"
+      );
+    }
+
+    /**
+     * Apply Add Field
+     */
+    $(".cpcm-btn-apply-add").on("click", function () {
+      var name = $("#add_field_name").val().trim();
+      var type = $("#add_field_type").val();
+      var value = "";
+      var preview = "";
+
+      if (!name) {
+        showNotification("Please enter a field name.", "error");
+        return;
+      }
+
+      var key = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+
+      // Check if key already exists
+      if ($('tr[data-field-key="' + key + '"]').length > 0) {
+        showNotification(
+          "A field with this name already exists locally.",
+          "error"
+        );
+        return;
+      }
+
+      // Get value and preview based on type
+      if (type === "text") {
+        value = $('input[name="field_value_text"]').val();
+      } else if (type === "longtext") {
+        value = $('textarea[name="field_value_longtext"]').val();
+      } else if (type === "number") {
+        value = $('input[name="field_value_number"]').val();
+      } else if (type === "single_image") {
+        value = $("#add_modal .cpcm-image-id").val() || "";
+        preview = $("#add_modal .cpcm-image-preview img").attr("src") || "";
+      } else if (type === "multi_images") {
+        value = $("#add_modal .cpcm-multi-image-ids").val() || "";
+        var galleryItems = [];
+        $("#add_modal .cpcm-multi-image-item").each(function () {
+          galleryItems.push({
+            id: $(this).data("id"),
+            url: $(this).find("img").attr("src"),
+          });
         });
+        preview = galleryItems;
+      }
 
-        $input.val(currentIds.join(","));
-      });
+      var rowHtml = generateRowHtml(key, name, type, value, preview);
 
-      multiMediaUploader.open();
+      if ($("#cpcm-fields-tbody").length === 0) {
+        // If empty state was showing, reload to get table structure or handle it
+        location.reload();
+        return;
+      }
+
+      $("#cpcm-fields-tbody").append(rowHtml);
+      closeModal();
+      showNotification("Field added to list (Save to persist)", "success");
+
+      // Clear add form
+      $("#add_field_name").val("");
+      $('input[name="field_value_text"]').val("");
+      $('textarea[name="field_value_longtext"]').val("");
+      $('input[name="field_value_number"]').val("");
+      $(".cpcm-image-id").val("");
+      $(".cpcm-image-preview").html("");
+      $(".cpcm-multi-image-ids").val("");
+      $(".cpcm-multi-image-preview").html("");
     });
 
-    // Remove image from multi-image field
-    $(document).on("click", ".cpcm-remove-multi-image", function (e) {
-      e.preventDefault();
-      var $item = $(this).closest(".cpcm-multi-image-item");
-      var $wrapper = $item.closest(".cpcm-multi-image-wrapper");
-      var $input = $wrapper.find(".cpcm-multi-image-ids");
-      var imageId = $item.data("id").toString();
+    /**
+     * Apply Edit Field
+     */
+    $(".cpcm-btn-apply-edit").on("click", function () {
+      var key = $("#edit_field_key").val();
+      var name = $("#edit_field_name").val().trim();
+      var type = $("#edit_field_type").val();
+      var value = "";
+      var preview = "";
 
-      var currentIds = $input.val().split(",");
-      currentIds = currentIds.filter(function (id) {
-        return id !== imageId;
-      });
+      if (!name) {
+        showNotification("Please enter a field name.", "error");
+        return;
+      }
 
-      $input.val(currentIds.join(","));
-      $item.remove();
+      // Get value and preview based on type
+      if (type === "text") {
+        value = $("#edit_field_value_text").val();
+      } else if (type === "longtext") {
+        value = $("#edit_field_value_longtext").val();
+      } else if (type === "number") {
+        value = $("#edit_field_value_number").val();
+      } else if (type === "single_image") {
+        value = $("#edit_field_value_image").val();
+        preview =
+          $("#edit_field_content_container .cpcm-image-preview img").attr(
+            "src"
+          ) || "";
+      } else if (type === "multi_images") {
+        value = $("#edit_field_value_gallery").val();
+        var galleryItems = [];
+        $("#edit_field_content_container .cpcm-multi-image-item").each(
+          function () {
+            galleryItems.push({
+              id: $(this).data("id"),
+              url: $(this).find("img").attr("src"),
+            });
+          }
+        );
+        preview = galleryItems;
+      }
+
+      var rowHtml = generateRowHtml(key, name, type, value, preview);
+      $('tr[data-field-key="' + key + '"]').replaceWith(rowHtml);
+
+      closeModal();
+      showNotification("Field updated in list (Save to persist)", "success");
     });
+
     /**
      * Modal Handling
      */
@@ -374,11 +410,20 @@
         }
       } else if (fieldType === "multi_images") {
         $("#edit_field_value_gallery").val(fieldValue);
-        if (preview && Array.isArray(preview)) {
+        var images = [];
+        if (typeof preview === "string" && preview.startsWith("[")) {
+          try {
+            images = JSON.parse(preview);
+          } catch (e) {}
+        } else if (Array.isArray(preview)) {
+          images = preview;
+        }
+
+        if (images.length > 0) {
           var $galleryContainer = $(
             "#edit_field_content_container .cpcm-multi-image-preview"
           );
-          preview.forEach(function (img) {
+          images.forEach(function (img) {
             $galleryContainer.append(
               '<div class="cpcm-multi-image-item" data-id="' +
                 img.id +
@@ -466,6 +511,8 @@
       } else {
         $(".cpcm-warning").slideUp();
       }
+
+      updateContentInputs(newType);
     });
   });
 })(jQuery);

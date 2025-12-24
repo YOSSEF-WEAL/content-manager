@@ -191,9 +191,48 @@ class CPCM_Admin {
 
         check_admin_referer('cpcm_save_fields_' . $page_id);
 
+        // 1. Rebuild Field Registry
+        $new_fields_registry = array();
+        if (isset($_POST['cpcm_field_registry']) && is_array($_POST['cpcm_field_registry'])) {
+            foreach ($_POST['cpcm_field_registry'] as $field_key => $field_data) {
+                $new_fields_registry[sanitize_key($field_key)] = array(
+                    'name' => sanitize_text_field($field_data['name']),
+                    'type' => sanitize_text_field($field_data['type'])
+                );
+            }
+        }
+        
+        // Save the updated registry
+        update_post_meta($page_id, '_cpcm_fields', $new_fields_registry);
+
+        // 2. Save Individual Field Contents
         if (isset($_POST['cpcm_fields']) && is_array($_POST['cpcm_fields'])) {
             foreach ($_POST['cpcm_fields'] as $field_key => $field_value) {
-                update_post_meta($page_id, 'cpcm_' . sanitize_key($field_key), sanitize_textarea_field($field_value));
+                // Ensure the field exists in our new registry before saving its value
+                if (isset($new_fields_registry[$field_key])) {
+                    $field_type = $new_fields_registry[$field_key]['type'];
+                    
+                    // Sanitize based on type if needed
+                    if ($field_type === 'longtext') {
+                        $sanitized_value = sanitize_textarea_field($field_value);
+                    } else {
+                        $sanitized_value = sanitize_text_field($field_value);
+                    }
+                    
+                    update_post_meta($page_id, 'cpcm_' . sanitize_key($field_key), $sanitized_value);
+                }
+            }
+        }
+
+        // 3. Cleanup: Remove meta for fields that were deleted from the registry
+        // Get all post meta keys
+        $all_meta = get_post_meta($page_id);
+        foreach ($all_meta as $meta_key => $meta_value) {
+            if (strpos($meta_key, 'cpcm_') === 0 && $meta_key !== '_cpcm_fields') {
+                $actual_key = substr($meta_key, 5); // remove 'cpcm_'
+                if (!isset($new_fields_registry[$actual_key])) {
+                    delete_post_meta($page_id, $meta_key);
+                }
             }
         }
 
