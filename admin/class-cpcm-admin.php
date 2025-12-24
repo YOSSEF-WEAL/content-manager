@@ -390,4 +390,106 @@ class CPCM_Admin {
         ), admin_url('admin.php')));
         exit;
     }
+
+    /**
+     * Import fields from another post (translation).
+     *
+     * @since    2.2.0
+     */
+    public function import_fields() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have permission to perform this action.', 'custom-page-content-manager'));
+        }
+
+        $target_page_id = isset($_POST['page_id']) ? intval($_POST['page_id']) : 0;
+        $source_page_id = isset($_POST['source_page_id']) ? intval($_POST['source_page_id']) : 0;
+
+        if (!$target_page_id || !$source_page_id) {
+            wp_die(__('Invalid parameters.', 'custom-page-content-manager'));
+        }
+
+        check_admin_referer('cpcm_import_fields_' . $target_page_id);
+
+        $source_fields = get_post_meta($source_page_id, '_cpcm_fields', true);
+        if (!is_array($source_fields)) {
+            $source_fields = array();
+        }
+
+        if (empty($source_fields)) {
+            wp_redirect(add_query_arg(array(
+                'page' => 'page-content-manager',
+                'action' => 'edit',
+                'page_id' => $target_page_id,
+                'message' => 'no_source_fields'
+            ), admin_url('admin.php')));
+            exit;
+        }
+
+        $target_fields = get_post_meta($target_page_id, '_cpcm_fields', true);
+        if (!is_array($target_fields)) {
+            $target_fields = array();
+        }
+
+        // Merge fields and copy values
+        foreach ($source_fields as $field_key => $field_data) {
+            $target_fields[$field_key] = $field_data;
+            
+            // Copy specific field value
+            $source_value = get_post_meta($source_page_id, 'cpcm_' . $field_key, true);
+            update_post_meta($target_page_id, 'cpcm_' . $field_key, $source_value);
+        }
+
+        update_post_meta($target_page_id, '_cpcm_fields', $target_fields);
+
+        wp_redirect(add_query_arg(array(
+            'page' => 'page-content-manager',
+            'action' => 'edit',
+            'page_id' => $target_page_id,
+            'message' => 'imported'
+        ), admin_url('admin.php')));
+        exit;
+    }
+
+    /**
+     * Get translations for a post.
+     *
+     * @since    2.2.0
+     * @param    int    $post_id    The post ID.
+     * @return   array  $translations  Array of translation post IDs and their language info.
+     */
+    public function get_post_translations($post_id) {
+        $translations = array();
+
+        // Check for WPML
+        if (defined('ICL_SITEPRESS_VERSION')) {
+            $trid = apply_filters('wpml_element_trid', null, $post_id, 'post_page');
+            if ($trid) {
+                $element_translations = apply_filters('wpml_get_element_translations', array(), $trid, 'post_page');
+                foreach ($element_translations as $lang_code => $translation) {
+                    if (intval($translation->element_id) !== intval($post_id)) {
+                        $translations[$lang_code] = array(
+                            'id' => $translation->element_id,
+                            'name' => isset($translation->display_name) ? $translation->display_name : $lang_code,
+                            'code' => $lang_code
+                        );
+                    }
+                }
+            }
+        }
+        // Check for Polylang
+        elseif (function_exists('pll_get_post_translations')) {
+            $pll_translations = pll_get_post_translations($post_id);
+            foreach ($pll_translations as $lang_code => $translation_id) {
+                if (intval($translation_id) !== intval($post_id)) {
+                    $translations[$lang_code] = array(
+                        'id' => $translation_id,
+                        'name' => function_exists('pll_get_language_name') ? pll_get_language_name($lang_code) : $lang_code,
+                        'code' => $lang_code
+                    );
+                }
+            }
+        }
+
+        return $translations;
+    }
 }

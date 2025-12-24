@@ -97,6 +97,7 @@ class CPCM_Core {
         $this->loader->add_action('admin_post_cpcm_add_field', $plugin_admin, 'add_field');
         $this->loader->add_action('admin_post_cpcm_delete_field', $plugin_admin, 'delete_field');
         $this->loader->add_action('admin_post_cpcm_edit_field', $plugin_admin, 'edit_field');
+        $this->loader->add_action('admin_post_cpcm_import_fields', $plugin_admin, 'import_fields');
     }
 
     /**

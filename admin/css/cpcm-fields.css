@@ -253,6 +253,39 @@
   transform: translateY(1px);
 }
 
+.cpcm-btn-import {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px !important;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none !important;
+  line-height: 1.4;
+  height: auto !important;
+  cursor: pointer;
+}
+
+.cpcm-btn-import:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.cpcm-btn-import .dashicons {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
 .cpcm-btn-delete {
   color: #dc2626;
   border: 1px solid #fca5a5;
