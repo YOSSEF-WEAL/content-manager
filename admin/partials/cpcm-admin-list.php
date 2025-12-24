@@ -10,6 +10,29 @@
 if (!defined('WPINC')) {
     die;
 }
+
+// Display messages
+if (isset($_GET['message'])) {
+    $message_type = sanitize_key($_GET['message']);
+    $messages = array(
+        'saved' => array(
+            'type' => 'success',
+            'text' => __('Changes saved successfully!', 'custom-page-content-manager')
+        ),
+        'deleted' => array(
+            'type' => 'success',
+            'text' => __('Field deleted successfully!', 'custom-page-content-manager')
+        ),
+        'error' => array(
+            'type' => 'error',
+            'text' => __('An error occurred. Please try again.', 'custom-page-content-manager')
+        )
+    );
+    
+    if (isset($messages[$message_type])) {
+        echo '<div class="notice cpcm-notice notice-' . esc_attr($messages[$message_type]['type']) . ' is-dismissible"><p>' . esc_html($messages[$message_type]['text']) . '</p></div>';
+    }
+}
 ?>
 
 <div class="wrap cpcm-wrap">

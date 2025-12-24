@@ -49,6 +49,7 @@ class CPCM_Core {
         $this->set_locale();
         $this->define_admin_hooks();
         $this->define_public_hooks();
+        $this->init_elementor_integration();
     }
 
     /**
@@ -62,6 +63,9 @@ class CPCM_Core {
         require_once CPCM_PLUGIN_DIR . 'includes/class-cpcm-i18n.php';
         require_once CPCM_PLUGIN_DIR . 'admin/class-cpcm-admin.php';
         require_once CPCM_PLUGIN_DIR . 'public/class-cpcm-public.php';
+
+        // Load Elementor integration
+        require_once CPCM_PLUGIN_DIR . 'includes/elementor/class-cpcm-elementor-integration.php';
 
         $this->loader = new CPCM_Loader();
     }
@@ -92,6 +96,7 @@ class CPCM_Core {
         $this->loader->add_action('admin_post_cpcm_save_fields', $plugin_admin, 'save_fields');
         $this->loader->add_action('admin_post_cpcm_add_field', $plugin_admin, 'add_field');
         $this->loader->add_action('admin_post_cpcm_delete_field', $plugin_admin, 'delete_field');
+        $this->loader->add_action('admin_post_cpcm_edit_field', $plugin_admin, 'edit_field');
     }
 
     /**
@@ -106,6 +111,17 @@ class CPCM_Core {
         $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_styles');
         $this->loader->add_action('wp_enqueue_scripts', $plugin_public, 'enqueue_scripts');
         $this->loader->add_action('init', $plugin_public, 'register_shortcodes');
+    }
+
+    /**
+     * Initialize Elementor integration.
+     *
+     * @since    2.1.0
+     * @access   private
+     */
+    private function init_elementor_integration() {
+        // Initialize Elementor integration
+        new CPCM_Elementor_Integration();
     }
 
     /**

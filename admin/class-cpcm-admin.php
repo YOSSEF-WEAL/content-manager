@@ -46,9 +46,30 @@ class CPCM_Admin {
     public function enqueue_styles() {
         if (isset($_GET['page']) && $_GET['page'] === 'page-content-manager') {
             wp_enqueue_style(
-                $this->plugin_name,
-                CPCM_PLUGIN_URL . 'admin/css/cpcm-admin.css',
+                $this->plugin_name . '-core',
+                CPCM_PLUGIN_URL . 'admin/css/cpcm-core.css',
                 array(),
+                $this->version,
+                'all'
+            );
+            wp_enqueue_style(
+                $this->plugin_name . '-fields',
+                CPCM_PLUGIN_URL . 'admin/css/cpcm-fields.css',
+                array($this->plugin_name . '-core'),
+                $this->version,
+                'all'
+            );
+            wp_enqueue_style(
+                $this->plugin_name . '-modal',
+                CPCM_PLUGIN_URL . 'admin/css/cpcm-modal.css',
+                array($this->plugin_name . '-core'),
+                $this->version,
+                'all'
+            );
+            wp_enqueue_style(
+                $this->plugin_name . '-notifications',
+                CPCM_PLUGIN_URL . 'admin/css/cpcm-notifications.css',
+                array($this->plugin_name . '-core'),
                 $this->version,
                 'all'
             );
@@ -223,6 +244,31 @@ class CPCM_Admin {
                 );
                 
                 update_post_meta($page_id, '_cpcm_fields', $fields);
+                
+                // Save Field Content
+                $field_value = '';
+                switch ($field_type) {
+                    case 'text':
+                        $field_value = isset($_POST['field_value_text']) ? sanitize_text_field($_POST['field_value_text']) : '';
+                        break;
+                    case 'longtext':
+                        $field_value = isset($_POST['field_value_longtext']) ? sanitize_textarea_field($_POST['field_value_longtext']) : '';
+                        break;
+                    case 'number':
+                        $field_value = isset($_POST['field_value_number']) ? sanitize_text_field($_POST['field_value_number']) : '';
+                        break;
+                    case 'single_image':
+                        $field_value = isset($_POST['field_value_image']) ? sanitize_text_field($_POST['field_value_image']) : '';
+                        break;
+                    case 'multi_images':
+                        $field_value = isset($_POST['field_value_gallery']) ? sanitize_text_field($_POST['field_value_gallery']) : '';
+                        break;
+                }
+                
+                if ($field_value !== '') {
+                    update_post_meta($page_id, 'cpcm_' . $field_key, $field_value);
+                }
+
                 $message = 'added';
             } else {
                 $message = 'exists';
@@ -269,6 +315,78 @@ class CPCM_Admin {
             'action' => 'edit',
             'page_id' => $page_id,
             'message' => 'deleted'
+        ), admin_url('admin.php')));
+        exit;
+    }
+
+    /**
+     * Edit a field via admin-post action.
+     *
+     * @since    2.1.0
+     */
+    public function edit_field() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have permission to perform this action.', 'custom-page-content-manager'));
+        }
+
+        $page_id = isset($_POST['page_id']) ? intval($_POST['page_id']) : 0;
+        
+        if (!$page_id) {
+            wp_die(__('Invalid page ID.', 'custom-page-content-manager'));
+        }
+
+        check_admin_referer('cpcm_edit_field_' . $page_id);
+
+        $field_key = isset($_POST['field_key']) ? sanitize_text_field($_POST['field_key']) : '';
+        $field_name = isset($_POST['field_name']) ? sanitize_text_field($_POST['field_name']) : '';
+        $field_type = isset($_POST['field_type']) ? sanitize_text_field($_POST['field_type']) : '';
+        
+        $message = 'error';
+
+        if (!empty($field_key) && !empty($field_name) && !empty($field_type)) {
+            $fields = get_post_meta($page_id, '_cpcm_fields', true);
+            if (!is_array($fields)) {
+                $fields = array();
+            }
+
+            if (isset($fields[$field_key])) {
+                // Update field details
+                $fields[$field_key]['name'] = $field_name;
+                $fields[$field_key]['type'] = $field_type;
+
+                update_post_meta($page_id, '_cpcm_fields', $fields);
+
+                // Update Field Content
+                $field_value = '';
+                switch ($field_type) {
+                    case 'text':
+                        $field_value = isset($_POST['field_value_text']) ? sanitize_text_field($_POST['field_value_text']) : '';
+                        break;
+                    case 'longtext':
+                        $field_value = isset($_POST['field_value_longtext']) ? sanitize_textarea_field($_POST['field_value_longtext']) : '';
+                        break;
+                    case 'number':
+                        $field_value = isset($_POST['field_value_number']) ? sanitize_text_field($_POST['field_value_number']) : '';
+                        break;
+                    case 'single_image':
+                        $field_value = isset($_POST['field_value_image']) ? sanitize_text_field($_POST['field_value_image']) : '';
+                        break;
+                    case 'multi_images':
+                        $field_value = isset($_POST['field_value_gallery']) ? sanitize_text_field($_POST['field_value_gallery']) : '';
+                        break;
+                }
+                
+                update_post_meta($page_id, 'cpcm_' . $field_key, $field_value);
+
+                $message = 'saved';
+            }
+        }
+
+        wp_redirect(add_query_arg(array(
+            'page' => 'page-content-manager',
+            'action' => 'edit',
+            'page_id' => $page_id,
+            'message' => $message
         ), admin_url('admin.php')));
         exit;
     }

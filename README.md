@@ -9,6 +9,8 @@ Professional WordPress plugin for managing custom fields on pages with multiling
 
 ## ✨ Features
 
+- 🎨 **Elementor Integration** - Dynamic Tags support for all field types
+- ✏️ **Edit Fields** - Ability to rename and change field types
 - 🖼️ **Image Upload** - WordPress media library integration for single and multiple images
 - 🎨 Modern, professional admin interface with gradient design
 - 🌍 Full internationalization (i18n) support
@@ -166,8 +168,11 @@ content-manager/
 
 ## 📝 Changelog
 
-### Version 2.0.0 (Latest)
+### Version 2.1.0 (Latest)
 
+- ✅ **Elementor Integration** - Full support for Dynamic Tags
+- ✅ **Edit Feature** - Ability to edit field name and type
+- ✅ **Dynamic Tags** - Text, Number, Image, and Gallery tags
 - ✅ **Image Upload Feature** - WordPress media library integration
 - ✅ Single and multiple image support
 - ✅ Enhanced shortcode with `size` and `class` attributes
