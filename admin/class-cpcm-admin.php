@@ -87,9 +87,41 @@ class CPCM_Admin {
             wp_enqueue_media();
             
             wp_enqueue_script(
+                $this->plugin_name . '-notifications',
+                CPCM_PLUGIN_URL . 'admin/js/cpcm-notifications.js',
+                array('jquery'),
+                $this->version,
+                true
+            );
+
+            wp_enqueue_script(
+                $this->plugin_name . '-modals',
+                CPCM_PLUGIN_URL . 'admin/js/cpcm-modals.js',
+                array('jquery'),
+                $this->version,
+                true
+            );
+
+            wp_enqueue_script(
+                $this->plugin_name . '-media',
+                CPCM_PLUGIN_URL . 'admin/js/cpcm-media.js',
+                array('jquery', 'media-upload', 'media-views'),
+                $this->version,
+                true
+            );
+
+            wp_enqueue_script(
+                $this->plugin_name . '-fields',
+                CPCM_PLUGIN_URL . 'admin/js/cpcm-fields.js',
+                array('jquery', $this->plugin_name . '-notifications', $this->plugin_name . '-modals', $this->plugin_name . '-media'),
+                $this->version,
+                true
+            );
+
+            wp_enqueue_script(
                 $this->plugin_name,
                 CPCM_PLUGIN_URL . 'admin/js/cpcm-admin.js',
-                array('jquery', 'media-upload', 'media-views'),
+                array('jquery', $this->plugin_name . '-fields'),
                 $this->version,
                 true  // Load in footer
             );
