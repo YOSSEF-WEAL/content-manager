@@ -25,6 +25,7 @@
 
       try {
         // Copy to clipboard
+        $temp.select();
         document.execCommand("copy");
 
         // Visual feedback
@@ -77,8 +78,16 @@
 
     function updateEmptyState() {
       if ($("#cpcm-fields-tbody tr").length === 0) {
-        location.reload(); // Simplest way to show empty state from PHP
+        $("#cpcm-fields-container").hide();
+        $("#cpcm-empty-state-wrapper").fadeIn();
+      } else {
+        $("#cpcm-empty-state-wrapper").hide();
+        $("#cpcm-fields-container").fadeIn();
       }
+      
+      // Update count text
+      var count = $("#cpcm-fields-tbody tr").length;
+      $(".cpcm-fields-count-text").text("Existing Fields (" + count + ")");
     }
 
     /**
@@ -288,18 +297,18 @@
 
       // Get value and preview based on type
       if (type === "text") {
-        value = $('input[name="field_value_text"]').val();
+        value = $addModal.find('input[name="field_value_text"]').val();
       } else if (type === "longtext") {
-        value = $('textarea[name="field_value_longtext"]').val();
+        value = $addModal.find('textarea[name="field_value_longtext"]').val();
       } else if (type === "number") {
-        value = $('input[name="field_value_number"]').val();
+        value = $addModal.find('input[name="field_value_number"]').val();
       } else if (type === "single_image") {
-        value = $("#add_modal .cpcm-image-id").val() || "";
-        preview = $("#add_modal .cpcm-image-preview img").attr("src") || "";
+        value = $addModal.find(".cpcm-image-id").val() || "";
+        preview = $addModal.find(".cpcm-image-preview img").attr("src") || "";
       } else if (type === "multi_images") {
-        value = $("#add_modal .cpcm-multi-image-ids").val() || "";
+        value = $addModal.find(".cpcm-multi-image-ids").val() || "";
         var galleryItems = [];
-        $("#add_modal .cpcm-multi-image-item").each(function () {
+        $addModal.find(".cpcm-multi-image-item").each(function () {
           galleryItems.push({
             id: $(this).data("id"),
             url: $(this).find("img").attr("src"),
@@ -310,13 +319,8 @@
 
       var rowHtml = generateRowHtml(key, name, type, value, preview);
 
-      if ($("#cpcm-fields-tbody").length === 0) {
-        // If empty state was showing, reload to get table structure or handle it
-        location.reload();
-        return;
-      }
-
       $("#cpcm-fields-tbody").append(rowHtml);
+      updateEmptyState();
       closeModal();
       trackChanges();
       showNotification("Field added to list (Save to persist)", "success");

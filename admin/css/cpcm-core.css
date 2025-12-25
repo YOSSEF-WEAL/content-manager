@@ -184,6 +184,38 @@
 .cpcm-empty-state p {
   color: #6b7280;
   font-size: 14px;
+  margin-bottom: 30px;
+}
+
+.cpcm-empty-state-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.cpcm-empty-state-actions .button-hero {
+  padding: 12px 30px !important;
+  font-size: 16px !important;
+  height: auto !important;
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
+  transition: all 0.3s ease !important;
+}
+
+.cpcm-empty-state-actions .button-hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5) !important;
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+}
+
+.cpcm-empty-state-actions .button-hero .dashicons {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 
 .cpcm-no-pages {

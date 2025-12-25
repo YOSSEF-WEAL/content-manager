@@ -52,12 +52,35 @@ if (isset($_GET['message'])) {
 ?>
 
 <div class="wrap cpcm-wrap">
+    <h1 class="screen-reader-text"><?php echo esc_html(sprintf(__('Edit Fields: %s', 'custom-page-content-manager'), $page->post_title)); ?></h1>
+    
     <div class="cpcm-header">
-        <h1 class="cpcm-title">
+        <h2 class="cpcm-title">
             <span class="dashicons dashicons-edit-page"></span>
             <?php echo esc_html(sprintf(__('Edit Fields: %s', 'custom-page-content-manager'), $page->post_title)); ?>
-        </h1>
+        </h2>
         <div class="cpcm-header-actions">
+            <!-- Global Header Actions -->
+            <button type="button" class="button cpcm-btn-header-action cpcm-btn-add-modal-trigger">
+                <span class="dashicons dashicons-plus"></span>
+                <?php echo esc_html__('Add Field', 'custom-page-content-manager'); ?>
+            </button>
+
+            <?php if (!empty($translations)): ?>
+                <?php foreach ($translations as $lang_code => $translation): ?>
+                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline-block;">
+                        <?php wp_nonce_field('cpcm_import_fields_' . $page_id); ?>
+                        <input type="hidden" name="action" value="cpcm_import_fields">
+                        <input type="hidden" name="page_id" value="<?php echo esc_attr($page_id); ?>">
+                        <input type="hidden" name="source_page_id" value="<?php echo esc_attr($translation['id']); ?>">
+                        <button type="submit" class="button cpcm-btn-header-action cpcm-btn-import-lang" onclick="return confirm('<?php echo esc_js(sprintf(__('Are you sure you want to import fields from %s? This will overwrite existing fields with the same name.', 'custom-page-content-manager'), $translation['name'])); ?>');">
+                            <span class="dashicons dashicons-translation"></span>
+                            <?php echo esc_html(sprintf(__('Import (%s)', 'custom-page-content-manager'), strtoupper($lang_code))); ?>
+                        </button>
+                    </form>
+                <?php endforeach; ?>
+            <?php endif; ?>
+
             <a href="<?php echo esc_url(admin_url('admin.php?page=page-content-manager')); ?>" class="button cpcm-btn-back">
                 <span class="dashicons dashicons-arrow-left-alt2"></span>
                 <?php echo esc_html__('Back to Pages List', 'custom-page-content-manager'); ?>
@@ -67,183 +90,176 @@ if (isset($_GET['message'])) {
 
 
 
-    <!-- Existing Fields Section -->
-    <?php if (!empty($fields)): ?>
-    <div class="cpcm-card">
-        <div class="cpcm-card-header-with-actions">
-            <h2 class="cpcm-card-title">
-                <span class="dashicons dashicons-admin-settings"></span>
-                <?php echo esc_html(sprintf(__('Existing Fields (%d)', 'custom-page-content-manager'), count($fields))); ?>
-            </h2>
-            <div class="cpcm-card-actions">
-                <button type="button" class="button cpcm-btn-header-action cpcm-btn-add-modal-trigger">
-                    <span class="dashicons dashicons-plus"></span>
-                    <?php echo esc_html__('Add Field', 'custom-page-content-manager'); ?>
-                </button>
+    <form id="cpcm-main-save-form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="cpcm-form">
+        <?php wp_nonce_field('cpcm_save_fields_' . $page_id); ?>
+        <input type="hidden" name="action" value="cpcm_save_fields">
+        <input type="hidden" name="page_id" value="<?php echo esc_attr($page_id); ?>">
+
+        <!-- Existing Fields Section -->
+        <div id="cpcm-fields-container" <?php echo empty($fields) ? 'style="display:none;"' : ''; ?>>
+            <div class="cpcm-card">
+                <div class="cpcm-card-header-with-actions">
+                    <h2 class="cpcm-card-title">
+                        <span class="dashicons dashicons-admin-settings"></span>
+                        <span class="cpcm-fields-count-text">
+                            <?php echo esc_html(sprintf(__('Existing Fields (%d)', 'custom-page-content-manager'), count($fields))); ?>
+                        </span>
+                    </h2>
+                    <div class="cpcm-card-actions">
+                        <button type="submit" form="cpcm-main-save-form" class="button cpcm-btn-header-action cpcm-btn-save-all" disabled>
+                            <span class="dashicons dashicons-saved"></span>
+                            <?php echo esc_html__('Save', 'custom-page-content-manager'); ?>
+                        </button>
+
+                        <button type="button" class="button cpcm-btn-header-action cpcm-btn-reset-fields" disabled>
+                            <span class="dashicons dashicons-undo"></span>
+                            <?php echo esc_html__('Reset', 'custom-page-content-manager'); ?>
+                        </button>
+                    </div>
+                </div>
                 
-                <?php if (!empty($translations)): ?>
-                    <?php foreach ($translations as $lang_code => $translation): ?>
-                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline-block;">
-                            <?php wp_nonce_field('cpcm_import_fields_' . $page_id); ?>
-                            <input type="hidden" name="action" value="cpcm_import_fields">
-                            <input type="hidden" name="page_id" value="<?php echo esc_attr($page_id); ?>">
-                            <input type="hidden" name="source_page_id" value="<?php echo esc_attr($translation['id']); ?>">
-                            <button type="submit" class="button cpcm-btn-header-action cpcm-btn-import-lang" onclick="return confirm('<?php echo esc_js(sprintf(__('Are you sure you want to import fields from %s? This will overwrite existing fields with the same name.', 'custom-page-content-manager'), $translation['name'])); ?>');">
-                                <span class="dashicons dashicons-translation"></span>
-                                <?php echo esc_html(sprintf(__('Import (%s)', 'custom-page-content-manager'), strtoupper($lang_code))); ?>
-                            </button>
-                        </form>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-
-                <button type="submit" form="cpcm-main-save-form" class="button cpcm-btn-header-action cpcm-btn-save-all" disabled>
-                    <span class="dashicons dashicons-saved"></span>
-                    <?php echo esc_html__('Save', 'custom-page-content-manager'); ?>
-                </button>
-
-                <button type="button" class="button cpcm-btn-header-action cpcm-btn-reset-fields" disabled>
-                    <span class="dashicons dashicons-undo"></span>
-                    <?php echo esc_html__('Reset', 'custom-page-content-manager'); ?>
-                </button>
-            </div>
-        </div>
-        
-        <form id="cpcm-main-save-form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="cpcm-form">
-            <?php wp_nonce_field('cpcm_save_fields_' . $page_id); ?>
-            <input type="hidden" name="action" value="cpcm_save_fields">
-            <input type="hidden" name="page_id" value="<?php echo esc_attr($page_id); ?>">
-            
-            <div class="cpcm-fields-table-wrapper">
-                <table class="wp-list-table widefat fixed striped cpcm-fields-table">
-                    <thead>
-                        <tr>
-                            <th class="cpcm-th-name"><?php echo esc_html__('Field Name', 'custom-page-content-manager'); ?></th>
-                            <th class="cpcm-th-type"><?php echo esc_html__('Type', 'custom-page-content-manager'); ?></th>
-                            <th class="cpcm-th-value"><?php echo esc_html__('Value', 'custom-page-content-manager'); ?></th>
-                            <th class="cpcm-th-shortcode"><?php echo esc_html__('Shortcode', 'custom-page-content-manager'); ?></th>
-                            <th class="cpcm-th-actions"><?php echo esc_html__('Actions', 'custom-page-content-manager'); ?></th>
-                        </tr>
-                    </thead>
-                    <tbody id="cpcm-fields-tbody">
-                        <?php foreach ($fields as $field_key => $field): ?>
-                        <tr data-field-key="<?php echo esc_attr($field_key); ?>">
-                            <td class="cpcm-td-name">
-                                <strong><?php echo esc_html($field['name']); ?></strong>
-                                <input type="hidden" name="cpcm_field_registry[<?php echo esc_attr($field_key); ?>][name]" value="<?php echo esc_attr($field['name']); ?>">
-                                <input type="hidden" name="cpcm_field_registry[<?php echo esc_attr($field_key); ?>][type]" value="<?php echo esc_attr($field['type']); ?>">
-                            </td>
-                            <td class="cpcm-td-type">
-                                <span class="cpcm-type-badge cpcm-type-<?php echo esc_attr($field['type']); ?>">
-                                    <?php
-                                    $type_icons = array(
-                                        'text' => 'editor-textcolor',
-                                        'longtext' => 'media-text',
-                                        'number' => 'calculator',
-                                        'single_image' => 'format-image',
-                                        'multi_images' => 'images-alt2'
-                                    );
-                                    $icon = isset($type_icons[$field['type']]) ? $type_icons[$field['type']] : 'admin-generic';
-                                    ?>
-                                    <span class="dashicons dashicons-<?php echo esc_attr($icon); ?>"></span>
-                                    <?php echo esc_html(ucfirst(str_replace('_', ' ', $field['type']))); ?>
-                                </span>
-                            </td>
-                            <td class="cpcm-td-value">
-                                <?php
-                                $current_value = get_post_meta($page_id, 'cpcm_' . $field_key, true);
-                                $preview_data = ''; // For passing to JS
-                                
-                                if ($field['type'] === 'single_image') {
-                                    if ($current_value) {
-                                        $image_url = wp_get_attachment_image_url($current_value, 'thumbnail');
-                                        if ($image_url) {
-                                            echo '<div class="cpcm-row-preview-container"><img src="' . esc_url($image_url) . '" alt="" class="cpcm-table-row-preview"></div>';
-                                            $preview_data = $image_url;
-                                        } else {
-                                            echo '<span class="description">' . esc_html__('Image not found', 'custom-page-content-manager') . '</span>';
-                                        }
-                                    } else {
-                                        echo '<span class="description">' . esc_html__('No image selected', 'custom-page-content-manager') . '</span>';
-                                    }
-                                } elseif ($field['type'] === 'multi_images') {
-                                    $image_ids = $current_value ? explode(',', $current_value) : array();
-                                    $gallery_previews = array();
-                                    
-                                    if (!empty($image_ids)) {
-                                        echo '<div class="cpcm-table-gallery-preview">';
-                                        $count = 0;
-                                        foreach ($image_ids as $img_id) {
-                                            if ($img_id) {
-                                                $image_url = wp_get_attachment_image_url($img_id, 'thumbnail');
+                <div class="cpcm-fields-table-wrapper">
+                    <table class="wp-list-table widefat fixed striped cpcm-fields-table">
+                        <thead>
+                            <tr>
+                                <th class="cpcm-th-name"><?php echo esc_html__('Field Name', 'custom-page-content-manager'); ?></th>
+                                <th class="cpcm-th-type"><?php echo esc_html__('Type', 'custom-page-content-manager'); ?></th>
+                                <th class="cpcm-th-value"><?php echo esc_html__('Value', 'custom-page-content-manager'); ?></th>
+                                <th class="cpcm-th-shortcode"><?php echo esc_html__('Shortcode', 'custom-page-content-manager'); ?></th>
+                                <th class="cpcm-th-actions"><?php echo esc_html__('Actions', 'custom-page-content-manager'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cpcm-fields-tbody">
+                            <?php if (!empty($fields)): ?>
+                                <?php foreach ($fields as $field_key => $field): ?>
+                                <tr data-field-key="<?php echo esc_attr($field_key); ?>">
+                                    <td class="cpcm-td-name">
+                                        <strong><?php echo esc_html($field['name']); ?></strong>
+                                        <input type="hidden" name="cpcm_field_registry[<?php echo esc_attr($field_key); ?>][name]" value="<?php echo esc_attr($field['name']); ?>">
+                                        <input type="hidden" name="cpcm_field_registry[<?php echo esc_attr($field_key); ?>][type]" value="<?php echo esc_attr($field['type']); ?>">
+                                    </td>
+                                    <td class="cpcm-td-type">
+                                        <span class="cpcm-type-badge cpcm-type-<?php echo esc_attr($field['type']); ?>">
+                                            <?php
+                                            $type_icons = array(
+                                                'text' => 'editor-textcolor',
+                                                'longtext' => 'media-text',
+                                                'number' => 'calculator',
+                                                'single_image' => 'format-image',
+                                                'multi_images' => 'images-alt2'
+                                            );
+                                            $icon = isset($type_icons[$field['type']]) ? $type_icons[$field['type']] : 'admin-generic';
+                                            ?>
+                                            <span class="dashicons dashicons-<?php echo esc_attr($icon); ?>"></span>
+                                            <?php echo esc_html(ucfirst(str_replace('_', ' ', $field['type']))); ?>
+                                        </span>
+                                    </td>
+                                    <td class="cpcm-td-value">
+                                        <?php
+                                        $current_value = get_post_meta($page_id, 'cpcm_' . $field_key, true);
+                                        $preview_data = ''; // For passing to JS
+                                        
+                                        if ($field['type'] === 'single_image') {
+                                            if ($current_value) {
+                                                $image_url = wp_get_attachment_image_url($current_value, 'thumbnail');
                                                 if ($image_url) {
-                                                    $gallery_previews[] = array('id' => $img_id, 'url' => $image_url);
-                                                    if ($count < 3) {
-                                                        echo '<img src="' . esc_url($image_url) . '" alt="">';
-                                                    }
-                                                    $count++;
+                                                    echo '<div class="cpcm-row-preview-container"><img src="' . esc_url($image_url) . '" alt="" class="cpcm-table-row-preview"></div>';
+                                                    $preview_data = $image_url;
+                                                } else {
+                                                    echo '<span class="description">' . esc_html__('Image not found', 'custom-page-content-manager') . '</span>';
                                                 }
+                                            } else {
+                                                echo '<span class="description">' . esc_html__('No image selected', 'custom-page-content-manager') . '</span>';
                                             }
+                                        } elseif ($field['type'] === 'multi_images') {
+                                            $image_ids = $current_value ? explode(',', $current_value) : array();
+                                            $gallery_previews = array();
+                                            
+                                            if (!empty($image_ids)) {
+                                                echo '<div class="cpcm-table-gallery-preview">';
+                                                $count = 0;
+                                                foreach ($image_ids as $img_id) {
+                                                    if ($img_id) {
+                                                        $image_url = wp_get_attachment_image_url($img_id, 'thumbnail');
+                                                        if ($image_url) {
+                                                            $gallery_previews[] = array('id' => $img_id, 'url' => $image_url);
+                                                            if ($count < 3) {
+                                                                echo '<img src="' . esc_url($image_url) . '" alt="">';
+                                                            }
+                                                            $count++;
+                                                        }
+                                                    }
+                                                }
+                                                if (count($image_ids) > 3) {
+                                                    echo '<span class="cpcm-gallery-more">+' . (count($image_ids) - 3) . '</span>';
+                                                }
+                                                echo '</div>';
+                                            } else {
+                                                echo '<span class="description">' . esc_html__('No images selected', 'custom-page-content-manager') . '</span>';
+                                            }
+                                            $preview_data = json_encode($gallery_previews);
+                                        } elseif ($field['type'] === 'longtext') {
+                                            echo '<div class="cpcm-table-text-preview">' . nl2br(esc_html(mb_strimwidth($current_value, 0, 100, '...'))) . '</div>';
+                                        } else {
+                                            echo '<div class="cpcm-table-text-preview">' . esc_html($current_value) . '</div>';
                                         }
-                                        if (count($image_ids) > 3) {
-                                            echo '<span class="cpcm-gallery-more">+' . (count($image_ids) - 3) . '</span>';
-                                        }
-                                        echo '</div>';
-                                    } else {
-                                        echo '<span class="description">' . esc_html__('No images selected', 'custom-page-content-manager') . '</span>';
-                                    }
-                                    $preview_data = json_encode($gallery_previews);
-                                } elseif ($field['type'] === 'longtext') {
-                                    echo '<div class="cpcm-table-text-preview">' . nl2br(esc_html(mb_strimwidth($current_value, 0, 100, '...'))) . '</div>';
-                                } else {
-                                    echo '<div class="cpcm-table-text-preview">' . esc_html($current_value) . '</div>';
-                                }
-                                ?>
-                                <input type="hidden" name="cpcm_fields[<?php echo esc_attr($field_key); ?>]" value="<?php echo esc_attr($current_value); ?>" class="cpcm-row-value-input">
-                            </td>
-                            <td class="cpcm-td-shortcode">
-                                <div class="cpcm-shortcode-wrapper">
-                                    <code class="cpcm-shortcode" data-shortcode='[cpcm_field id="<?php echo esc_attr($page_id); ?>" field="<?php echo esc_attr($field_key); ?>"]'>
-                                        [cpcm_field id="<?php echo esc_attr($page_id); ?>" field="<?php echo esc_attr($field_key); ?>"]
-                                    </code>
-                                    <button type="button" class="button button-small cpcm-btn-copy" data-clipboard='[cpcm_field id="<?php echo esc_attr($page_id); ?>" field="<?php echo esc_attr($field_key); ?>"]'>
-                                        <span class="dashicons dashicons-clipboard"></span>
-                                    </button>
-                                </div>
-                            </td>
-                            <td class="cpcm-td-actions">
-                                <button type="button" 
-                                        class="button button-small cpcm-btn-edit-field"
-                                        data-field-key="<?php echo esc_attr($field_key); ?>"
-                                        data-field-name="<?php echo esc_attr($field['name']); ?>"
-                                        data-field-type="<?php echo esc_attr($field['type']); ?>"
-                                        data-field-value="<?php echo esc_attr($current_value); ?>"
-                                        data-preview='<?php echo esc_attr($preview_data); ?>'>
-                                    <span class="dashicons dashicons-edit"></span>
-                                    <?php echo esc_html__('Edit', 'custom-page-content-manager'); ?>
-                                </button>
-                                <button type="button" 
-                                   class="button button-small cpcm-btn-delete-local"
-                                   data-field-name="<?php echo esc_attr($field['name']); ?>">
-                                    <span class="dashicons dashicons-trash"></span>
-                                    <?php echo esc_html__('Delete', 'custom-page-content-manager'); ?>
-                                </button>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                                        ?>
+                                        <input type="hidden" name="cpcm_fields[<?php echo esc_attr($field_key); ?>]" value="<?php echo esc_attr($current_value); ?>" class="cpcm-row-value-input">
+                                    </td>
+                                    <td class="cpcm-td-shortcode">
+                                        <div class="cpcm-shortcode-wrapper">
+                                            <code class="cpcm-shortcode" data-shortcode='[cpcm_field id="<?php echo esc_attr($page_id); ?>" field="<?php echo esc_attr($field_key); ?>"]'>
+                                                [cpcm_field id="<?php echo esc_attr($page_id); ?>" field="<?php echo esc_attr($field_key); ?>"]
+                                            </code>
+                                            <button type="button" class="button button-small cpcm-btn-copy" data-clipboard='[cpcm_field id="<?php echo esc_attr($page_id); ?>" field="<?php echo esc_attr($field_key); ?>"]'>
+                                                <span class="dashicons dashicons-clipboard"></span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="cpcm-td-actions">
+                                        <button type="button" 
+                                                class="button button-small cpcm-btn-edit-field"
+                                                data-field-key="<?php echo esc_attr($field_key); ?>"
+                                                data-field-name="<?php echo esc_attr($field['name']); ?>"
+                                                data-field-type="<?php echo esc_attr($field['type']); ?>"
+                                                data-field-value="<?php echo esc_attr($current_value); ?>"
+                                                data-preview='<?php echo esc_attr($preview_data); ?>'>
+                                            <span class="dashicons dashicons-edit"></span>
+                                            <?php echo esc_html__('Edit', 'custom-page-content-manager'); ?>
+                                        </button>
+                                        <button type="button" 
+                                           class="button button-small cpcm-btn-delete-local"
+                                           data-field-name="<?php echo esc_attr($field['name']); ?>">
+                                            <span class="dashicons dashicons-trash"></span>
+                                            <?php echo esc_html__('Delete', 'custom-page-content-manager'); ?>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </form>
-    </div>
-    <?php else: ?>
-    <div class="cpcm-card cpcm-empty-state">
-        <div class="cpcm-empty-icon">
-            <span class="dashicons dashicons-info"></span>
         </div>
-        <h3><?php echo esc_html__('No fields yet', 'custom-page-content-manager'); ?></h3>
-        <p><?php echo esc_html__('Click the "Add New Field" button to get started.', 'custom-page-content-manager'); ?></p>
-    </div>
-    <?php endif; ?>
+
+        <!-- Empty State Section -->
+        <div id="cpcm-empty-state-wrapper" <?php echo !empty($fields) ? 'style="display:none;"' : ''; ?>>
+            <div class="cpcm-card cpcm-empty-state">
+                <div class="cpcm-empty-icon">
+                    <span class="dashicons dashicons-info"></span>
+                </div>
+                <h3><?php echo esc_html__('No fields yet', 'custom-page-content-manager'); ?></h3>
+                <p><?php echo esc_html__('Click the "Add New Field" button to get started.', 'custom-page-content-manager'); ?></p>
+                <div class="cpcm-empty-state-actions">
+                    <button type="button" class="button button-primary button-hero cpcm-btn-add-modal-trigger">
+                        <span class="dashicons dashicons-plus"></span>
+                        <?php echo esc_html__('Add New Field', 'custom-page-content-manager'); ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
     
     <!-- Add Field Modal -->
     <div id="cpcm-add-modal" class="cpcm-modal" style="display: none;">
