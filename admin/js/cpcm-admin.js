@@ -5,14 +5,86 @@
  * @subpackage CPCM/admin/js
  */
 
-(function ($) {
+(function ($)
+{
   "use strict";
 
-  $(document).ready(function () {
+  $(document).ready(function ()
+  {
+    /**
+     * Toast Notification System
+     */
+    function showNotification(message, type = "info")
+    {
+      var $container = $(".cpcm-notifications-container");
+      if ($container.length === 0)
+      {
+        $container = $('<div class="cpcm-notifications-container"></div>').appendTo("body");
+      }
+
+      var icons = {
+        success: "yes",
+        error: "warning",
+        info: "info",
+      };
+
+      var icon = icons[type] || "info";
+
+      var $toast = $(
+        '<div class="cpcm-toast cpcm-toast-' + type + '">' +
+        '<div class="cpcm-toast-icon"><span class="dashicons dashicons-' + icon + '"></span></div>' +
+        '<div class="cpcm-toast-content"><p class="cpcm-toast-message">' + message + "</p></div>" +
+        '<div class="cpcm-toast-close"><span class="dashicons dashicons-no-alt"></span></div>' +
+        '<div class="cpcm-toast-progress"></div>' +
+        "</div>"
+      );
+
+      $container.append($toast);
+
+      // Trigger animation
+      setTimeout(function ()
+      {
+        $toast.addClass("active");
+      }, 10);
+
+      // Auto remove after 5 seconds
+      var timeout = setTimeout(function ()
+      {
+        removeToast($toast);
+      }, 5000);
+
+      // Close button
+      $toast.find(".cpcm-toast-close").on("click", function ()
+      {
+        clearTimeout(timeout);
+        removeToast($toast);
+      });
+
+      function removeToast($t)
+      {
+        $t.removeClass("active");
+        setTimeout(function ()
+        {
+          $t.remove();
+        }, 500);
+      }
+    }
+
+    /**
+     * Modal Handling Variables
+     */
+    var $editModal = $("#cpcm-edit-modal");
+    var $addModal = $("#cpcm-add-modal");
+    var $modals = $(".cpcm-modal");
+    var $overlay = $(".cpcm-modal-overlay");
+    var $closeBtn = $(".cpcm-modal-close");
+    var $cancelBtn = $(".cpcm-modal-cancel");
+
     /**
      * Copy shortcode to clipboard
      */
-    $(".cpcm-btn-copy").on("click", function (e) {
+    $(".cpcm-btn-copy").on("click", function (e)
+    {
       e.preventDefault();
 
       var shortcode = $(this).data("clipboard");
@@ -23,7 +95,8 @@
       $("body").append($temp);
       $temp.val(shortcode).select();
 
-      try {
+      try
+      {
         // Copy to clipboard
         $temp.select();
         document.execCommand("copy");
@@ -34,16 +107,19 @@
         $button.css("background", "#10b981");
 
         // Show success message
-        if (typeof cpcmAdmin !== "undefined" && cpcmAdmin.copiedToClipboard) {
+        if (typeof cpcmAdmin !== "undefined" && cpcmAdmin.copiedToClipboard)
+        {
           showNotification(cpcmAdmin.copiedToClipboard, "success");
         }
 
         // Reset button after 2 seconds
-        setTimeout(function () {
+        setTimeout(function ()
+        {
           $button.html(originalHTML);
           $button.css("background", "");
         }, 2000);
-      } catch (err) {
+      } catch (err)
+      {
         console.error("Failed to copy:", err);
         showNotification("Failed to copy. Please copy manually.", "error");
       }
@@ -54,7 +130,8 @@
     /**
      * Local Field Deletion
      */
-    $(document).on("click", ".cpcm-btn-delete-local", function (e) {
+    $(document).on("click", ".cpcm-btn-delete-local", function (e)
+    {
       e.preventDefault();
       var $row = $(this).closest("tr");
       var fieldName = $(this).data("field-name");
@@ -62,12 +139,15 @@
         cpcmAdmin.confirmDelete ||
         "Are you sure you want to delete this field?";
 
-      if (fieldName) {
+      if (fieldName)
+      {
         confirmMessage = confirmMessage.replace("%s", fieldName);
       }
 
-      if (confirm(confirmMessage)) {
-        $row.fadeOut(300, function () {
+      if (confirm(confirmMessage))
+      {
+        $row.fadeOut(300, function ()
+        {
           $(this).remove();
           updateEmptyState();
         });
@@ -76,15 +156,18 @@
       }
     });
 
-    function updateEmptyState() {
-      if ($("#cpcm-fields-tbody tr").length === 0) {
+    function updateEmptyState()
+    {
+      if ($("#cpcm-fields-tbody tr").length === 0)
+      {
         $("#cpcm-fields-container").hide();
         $("#cpcm-empty-state-wrapper").fadeIn();
-      } else {
+      } else
+      {
         $("#cpcm-empty-state-wrapper").hide();
         $("#cpcm-fields-container").fadeIn();
       }
-      
+
       // Update count text
       var count = $("#cpcm-fields-tbody tr").length;
       $(".cpcm-fields-count-text").text("Existing Fields (" + count + ")");
@@ -93,7 +176,8 @@
     /**
      * Helper to generate row HTML
      */
-    function generateRowHtml(key, name, type, value, preview) {
+    function generateRowHtml(key, name, type, value, preview)
+    {
       var pageId = $('input[name="page_id"]').val();
       var typeIcons = {
         text: "editor-textcolor",
@@ -109,32 +193,42 @@
       var valueDisplay = value;
       var previewDataAttr = "";
 
-      if (type === "single_image") {
-        if (preview && typeof preview === "string") {
+      if (type === "single_image")
+      {
+        if (preview && typeof preview === "string")
+        {
           valueDisplay =
             '<div class="cpcm-row-preview-container"><img src="' +
             preview +
             '" alt="" class="cpcm-table-row-preview"></div>';
           previewDataAttr = preview;
-        } else {
+        } else
+        {
           valueDisplay = '<span class="description">No image selected</span>';
         }
-      } else if (type === "multi_images") {
+      } else if (type === "multi_images")
+      {
         var images = [];
-        if (typeof preview === "string" && preview.startsWith("[")) {
-          try {
+        if (typeof preview === "string" && preview.startsWith("["))
+        {
+          try
+          {
             images = JSON.parse(preview);
-          } catch (e) {}
-        } else if (Array.isArray(preview)) {
+          } catch (e) { }
+        } else if (Array.isArray(preview))
+        {
           images = preview;
         }
 
-        if (images.length > 0) {
+        if (images.length > 0)
+        {
           valueDisplay = '<div class="cpcm-table-gallery-preview">';
-          images.slice(0, 3).forEach(function (img) {
+          images.slice(0, 3).forEach(function (img)
+          {
             valueDisplay += '<img src="' + img.url + '" alt="">';
           });
-          if (images.length > 3) {
+          if (images.length > 3)
+          {
             valueDisplay +=
               '<span class="cpcm-gallery-more">+' +
               (images.length - 3) +
@@ -142,15 +236,18 @@
           }
           valueDisplay += "</div>";
           previewDataAttr = JSON.stringify(images);
-        } else {
+        } else
+        {
           valueDisplay = '<span class="description">No images selected</span>';
         }
-      } else if (type === "longtext") {
+      } else if (type === "longtext")
+      {
         valueDisplay =
           '<div class="cpcm-table-text-preview">' +
           (value.length > 100 ? value.substring(0, 100) + "..." : value) +
           "</div>";
-      } else {
+      } else
+      {
         valueDisplay =
           '<div class="cpcm-table-text-preview">' + value + "</div>";
       }
@@ -246,7 +343,8 @@
     var $saveButton = $(".cpcm-btn-save-all");
     var $resetButton = $(".cpcm-btn-reset-fields");
 
-    function trackChanges() {
+    function trackChanges()
+    {
       hasChanges = true;
       $saveButton.prop("disabled", false);
       $resetButton.prop("disabled", false);
@@ -255,13 +353,15 @@
     /**
      * Reset Functionality
      */
-    $(document).on("click", ".cpcm-btn-reset-fields", function (e) {
+    $(document).on("click", ".cpcm-btn-reset-fields", function (e)
+    {
       e.preventDefault();
       if (
         confirm(
           "Are you sure you want to discard all unsaved changes and reload?"
         )
-      ) {
+      )
+      {
         location.reload();
       }
     });
@@ -269,13 +369,15 @@
     /**
      * Apply Add Field
      */
-    $(".cpcm-btn-apply-add").on("click", function () {
+    $(".cpcm-btn-apply-add").on("click", function ()
+    {
       var name = $("#add_field_name").val().trim();
       var type = $("#add_field_type").val();
       var value = "";
       var preview = "";
 
-      if (!name) {
+      if (!name)
+      {
         showNotification("Please enter a field name.", "error");
         return;
       }
@@ -287,7 +389,8 @@
         .replace(/^-|-$/g, "");
 
       // Check if key already exists
-      if ($('tr[data-field-key="' + key + '"]').length > 0) {
+      if ($('tr[data-field-key="' + key + '"]').length > 0)
+      {
         showNotification(
           "A field with this name already exists locally.",
           "error"
@@ -296,19 +399,25 @@
       }
 
       // Get value and preview based on type
-      if (type === "text") {
+      if (type === "text")
+      {
         value = $addModal.find('input[name="field_value_text"]').val();
-      } else if (type === "longtext") {
+      } else if (type === "longtext")
+      {
         value = $addModal.find('textarea[name="field_value_longtext"]').val();
-      } else if (type === "number") {
+      } else if (type === "number")
+      {
         value = $addModal.find('input[name="field_value_number"]').val();
-      } else if (type === "single_image") {
+      } else if (type === "single_image")
+      {
         value = $addModal.find(".cpcm-image-id").val() || "";
         preview = $addModal.find(".cpcm-image-preview img").attr("src") || "";
-      } else if (type === "multi_images") {
+      } else if (type === "multi_images")
+      {
         value = $addModal.find(".cpcm-multi-image-ids").val() || "";
         var galleryItems = [];
-        $addModal.find(".cpcm-multi-image-item").each(function () {
+        $addModal.find(".cpcm-multi-image-item").each(function ()
+        {
           galleryItems.push({
             id: $(this).data("id"),
             url: $(this).find("img").attr("src"),
@@ -339,36 +448,44 @@
     /**
      * Apply Edit Field
      */
-    $(".cpcm-btn-apply-edit").on("click", function () {
+    $(".cpcm-btn-apply-edit").on("click", function ()
+    {
       var key = $("#edit_field_key").val();
       var name = $("#edit_field_name").val().trim();
       var type = $("#edit_field_type").val();
       var value = "";
       var preview = "";
 
-      if (!name) {
+      if (!name)
+      {
         showNotification("Please enter a field name.", "error");
         return;
       }
 
       // Get value and preview based on type
-      if (type === "text") {
+      if (type === "text")
+      {
         value = $("#edit_field_value_text").val();
-      } else if (type === "longtext") {
+      } else if (type === "longtext")
+      {
         value = $("#edit_field_value_longtext").val();
-      } else if (type === "number") {
+      } else if (type === "number")
+      {
         value = $("#edit_field_value_number").val();
-      } else if (type === "single_image") {
+      } else if (type === "single_image")
+      {
         value = $("#edit_field_value_image").val();
         preview =
           $("#edit_field_content_container .cpcm-image-preview img").attr(
             "src"
           ) || "";
-      } else if (type === "multi_images") {
+      } else if (type === "multi_images")
+      {
         value = $("#edit_field_value_gallery").val();
         var galleryItems = [];
         $("#edit_field_content_container .cpcm-multi-image-item").each(
-          function () {
+          function ()
+          {
             galleryItems.push({
               id: $(this).data("id"),
               url: $(this).find("img").attr("src"),
@@ -389,15 +506,11 @@
     /**
      * Modal Handling
      */
-    var $editModal = $("#cpcm-edit-modal");
-    var $addModal = $("#cpcm-add-modal");
-    var $modals = $(".cpcm-modal");
-    var $overlay = $(".cpcm-modal-overlay");
-    var $closeBtn = $(".cpcm-modal-close");
-    var $cancelBtn = $(".cpcm-modal-cancel");
+
 
     // Open Edit Modal
-    $(document).on("click", ".cpcm-btn-edit-field", function (e) {
+    $(document).on("click", ".cpcm-btn-edit-field", function (e)
+    {
       e.preventDefault();
 
       var $btn = $(this);
@@ -421,54 +534,65 @@
       $("#edit_field_content_container .cpcm-image-preview").html("");
       $("#edit_field_content_container .cpcm-multi-image-preview").html("");
 
-      if (fieldType === "text") {
+      if (fieldType === "text")
+      {
         $("#edit_field_value_text").val(fieldValue);
-      } else if (fieldType === "longtext") {
+      } else if (fieldType === "longtext")
+      {
         $("#edit_field_value_longtext").val(fieldValue);
-      } else if (fieldType === "number") {
+      } else if (fieldType === "number")
+      {
         $("#edit_field_value_number").val(fieldValue);
-      } else if (fieldType === "single_image") {
+      } else if (fieldType === "single_image")
+      {
         $("#edit_field_value_image").val(fieldValue);
-        if (preview) {
+        if (preview)
+        {
           var $previewContainer = $(
             "#edit_field_content_container .cpcm-image-preview"
           );
           $previewContainer.html(
             '<img src="' +
-              preview +
-              '" alt="">' +
-              '<button type="button" class="cpcm-remove-image" title="Remove image">' +
-              '<span class="dashicons dashicons-no-alt"></span>' +
-              "</button>"
+            preview +
+            '" alt="">' +
+            '<button type="button" class="cpcm-remove-image" title="Remove image">' +
+            '<span class="dashicons dashicons-no-alt"></span>' +
+            "</button>"
           );
         }
-      } else if (fieldType === "multi_images") {
+      } else if (fieldType === "multi_images")
+      {
         $("#edit_field_value_gallery").val(fieldValue);
         var images = [];
-        if (typeof preview === "string" && preview.startsWith("[")) {
-          try {
+        if (typeof preview === "string" && preview.startsWith("["))
+        {
+          try
+          {
             images = JSON.parse(preview);
-          } catch (e) {}
-        } else if (Array.isArray(preview)) {
+          } catch (e) { }
+        } else if (Array.isArray(preview))
+        {
           images = preview;
         }
 
-        if (images.length > 0) {
+        if (images.length > 0)
+        {
           var $galleryContainer = $(
             "#edit_field_content_container .cpcm-multi-image-preview"
           );
-          images.forEach(function (img) {
+          images.forEach(function (img)
+          {
             $galleryContainer.append(
               '<div class="cpcm-multi-image-item" data-id="' +
-                img.id +
-                '">' +
-                '<img src="' +
-                img.url +
-                '" alt="">' +
-                '<button type="button" class="cpcm-remove-multi-image">' +
-                '<span class="dashicons dashicons-no-alt"></span>' +
-                "</button>" +
-                "</div>"
+              img.id +
+              '">' +
+              '<img src="' +
+              img.url +
+              '" alt="">' +
+              '<button type="button" class="cpcm-remove-multi-image">' +
+              '<span class="dashicons dashicons-no-alt"></span>' +
+              "</button>" +
+              "</div>"
             );
           });
         }
@@ -488,18 +612,22 @@
     });
 
     // Open Add Modal
-    $(document).on("click", ".cpcm-btn-add-modal-trigger", function (e) {
+    $(document).on("click", ".cpcm-btn-add-modal-trigger", function (e)
+    {
       e.preventDefault();
       $addModal.css("display", "flex");
-      setTimeout(function () {
+      setTimeout(function ()
+      {
         $("#add_field_name").focus();
       }, 100);
     });
 
     // Close function
-    function closeModal() {
+    function closeModal()
+    {
       $modals.fadeOut(200);
-      setTimeout(function () {
+      setTimeout(function ()
+      {
         $modals.css("display", "none");
       }, 200);
     }
@@ -512,14 +640,17 @@
     );
 
     // Close on ESC key
-    $(document).on("keydown", function (e) {
-      if (e.key === "Escape" && $modals.is(":visible")) {
+    $(document).on("keydown", function (e)
+    {
+      if (e.key === "Escape" && $modals.is(":visible"))
+      {
         closeModal();
       }
     });
 
     // Type change warning and Dynamic Content Display
-    function updateContentInputs(type) {
+    function updateContentInputs(type)
+    {
       // Hide all inputs first
       $(".cpcm-input-wrapper").hide();
 
@@ -529,20 +660,24 @@
 
     // On Add Field Modal type change
     $("#add_field_type")
-      .on("change", function () {
+      .on("change", function ()
+      {
         var type = $(this).val();
         updateContentInputs(type);
       })
       .trigger("change"); // Trigger on init
 
     // On Edit Field Modal type change
-    $("#edit_field_type").on("change", function () {
+    $("#edit_field_type").on("change", function ()
+    {
       var originalType = $(this).data("original-type");
       var newType = $(this).val();
 
-      if (originalType !== newType) {
+      if (originalType !== newType)
+      {
         $(".cpcm-warning").slideDown();
-      } else {
+      } else
+      {
         $(".cpcm-warning").slideUp();
       }
 

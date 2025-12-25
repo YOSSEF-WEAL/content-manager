@@ -52,41 +52,39 @@ if (isset($_GET['message'])) {
 ?>
 
 <div class="wrap cpcm-wrap">
-    <h1 class="screen-reader-text"><?php echo esc_html(sprintf(__('Edit Fields: %s', 'custom-page-content-manager'), $page->post_title)); ?></h1>
-    
-    <div class="cpcm-header">
-        <h2 class="cpcm-title">
-            <span class="dashicons dashicons-edit-page"></span>
-            <?php echo esc_html(sprintf(__('Edit Fields: %s', 'custom-page-content-manager'), $page->post_title)); ?>
-        </h2>
-        <div class="cpcm-header-actions">
-            <!-- Global Header Actions -->
-            <button type="button" class="button cpcm-btn-header-action cpcm-btn-add-modal-trigger">
-                <span class="dashicons dashicons-plus"></span>
-                <?php echo esc_html__('Add Field', 'custom-page-content-manager'); ?>
-            </button>
+    <?php
+    ob_start();
+    ?>
+    <!-- Global Header Actions -->
+    <button type="button" class="button cpcm-btn-header-action cpcm-btn-add-modal-trigger">
+        <span class="dashicons dashicons-plus"></span>
+        <?php echo esc_html__('Add Field', 'custom-page-content-manager'); ?>
+    </button>
 
-            <?php if (!empty($translations)): ?>
-                <?php foreach ($translations as $lang_code => $translation): ?>
-                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline-block;">
-                        <?php wp_nonce_field('cpcm_import_fields_' . $page_id); ?>
-                        <input type="hidden" name="action" value="cpcm_import_fields">
-                        <input type="hidden" name="page_id" value="<?php echo esc_attr($page_id); ?>">
-                        <input type="hidden" name="source_page_id" value="<?php echo esc_attr($translation['id']); ?>">
-                        <button type="submit" class="button cpcm-btn-header-action cpcm-btn-import-lang" onclick="return confirm('<?php echo esc_js(sprintf(__('Are you sure you want to import fields from %s? This will overwrite existing fields with the same name.', 'custom-page-content-manager'), $translation['name'])); ?>');">
-                            <span class="dashicons dashicons-translation"></span>
-                            <?php echo esc_html(sprintf(__('Import (%s)', 'custom-page-content-manager'), strtoupper($lang_code))); ?>
-                        </button>
-                    </form>
-                <?php endforeach; ?>
-            <?php endif; ?>
+    <?php if (!empty($translations)): ?>
+        <?php foreach ($translations as $lang_code => $translation): ?>
+            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline-block;">
+                <?php wp_nonce_field('cpcm_import_fields_' . $page_id); ?>
+                <input type="hidden" name="action" value="cpcm_import_fields">
+                <input type="hidden" name="page_id" value="<?php echo esc_attr($page_id); ?>">
+                <input type="hidden" name="source_page_id" value="<?php echo esc_attr($translation['id']); ?>">
+                <button type="submit" class="button cpcm-btn-header-action cpcm-btn-import-lang" onclick="return confirm('<?php echo esc_js(sprintf(__('Are you sure you want to import fields from %s? This will overwrite existing fields with the same name.', 'custom-page-content-manager'), $translation['name'])); ?>');">
+                    <span class="dashicons dashicons-translation"></span>
+                    <?php echo esc_html(sprintf(__('Import (%s)', 'custom-page-content-manager'), strtoupper($lang_code))); ?>
+                </button>
+            </form>
+        <?php endforeach; ?>
+    <?php endif; ?>
 
-            <a href="<?php echo esc_url(admin_url('admin.php?page=page-content-manager')); ?>" class="button cpcm-btn-back">
-                <span class="dashicons dashicons-arrow-left-alt2"></span>
-                <?php echo esc_html__('Back to Pages List', 'custom-page-content-manager'); ?>
-            </a>
-        </div>
-    </div>
+    <a href="<?php echo esc_url(admin_url('admin.php?page=page-content-manager')); ?>" class="button cpcm-btn-back">
+        <span class="dashicons dashicons-arrow-left-alt2"></span>
+        <?php echo esc_html__('Back to Pages List', 'custom-page-content-manager'); ?>
+    </a>
+    <?php
+    $header_actions = ob_get_clean();
+    $header_title = sprintf(__('Edit Fields: %s', 'custom-page-content-manager'), $page->post_title);
+    include CPCM_PLUGIN_DIR . 'admin/partials/cpcm-admin-header.php';
+    ?>
 
 
 

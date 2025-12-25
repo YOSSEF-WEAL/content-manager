@@ -36,13 +36,11 @@ if (isset($_GET['message'])) {
 ?>
 
 <div class="wrap cpcm-wrap">
-    <div class="cpcm-header">
-        <h1 class="cpcm-title">
-            <span class="dashicons dashicons-edit-page"></span>
-            <?php echo esc_html__('Page Content Manager', 'custom-page-content-manager'); ?>
-        </h1>
-        <p class="cpcm-subtitle"><?php echo esc_html__('Manage custom fields for your WordPress pages', 'custom-page-content-manager'); ?></p>
-    </div>
+    <?php
+    $header_title = __('Page Content Manager', 'custom-page-content-manager');
+    $header_subtitle = __('Manage custom fields for your WordPress pages', 'custom-page-content-manager');
+    include CPCM_PLUGIN_DIR . 'admin/partials/cpcm-admin-header.php';
+    ?>
 
     <div class="cpcm-card">
         <table class="wp-list-table widefat fixed striped cpcm-table">
