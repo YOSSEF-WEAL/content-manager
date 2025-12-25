@@ -5,71 +5,83 @@
  * @subpackage CPCM/admin/js
  */
 
+/**
+ * Toast Notification System
+ */
+function showNotification(message, type = "info")
+{
+  var $container = jQuery(".cpcm-notifications-container");
+  if ($container.length === 0)
+  {
+    $container = jQuery('<div class="cpcm-notifications-container"></div>').appendTo("body");
+  }
+
+  var icons = {
+    success: "yes",
+    error: "warning",
+    info: "info",
+  };
+
+  var icon = icons[type] || "info";
+
+  var $toast = jQuery(
+    '<div class="cpcm-toast cpcm-toast-' + type + '">' +
+    '<div class="cpcm-toast-icon"><span class="dashicons dashicons-' + icon + '"></span></div>' +
+    '<div class="cpcm-toast-content"><p class="cpcm-toast-message">' + message + "</p></div>" +
+    '<div class="cpcm-toast-close"><span class="dashicons dashicons-no-alt"></span></div>' +
+    '<div class="cpcm-toast-progress"></div>' +
+    "</div>"
+  );
+
+  $container.append($toast);
+
+  // Trigger animation
+  setTimeout(function ()
+  {
+    $toast.addClass("active");
+  }, 10);
+
+  // Auto remove after 5 seconds
+  var timeout = setTimeout(function ()
+  {
+    removeToast($toast);
+  }, 5000);
+
+  // Close button
+  $toast.find(".cpcm-toast-close").on("click", function ()
+  {
+    clearTimeout(timeout);
+    removeToast($toast);
+  });
+
+  function removeToast($t)
+  {
+    $t.removeClass("active");
+    setTimeout(function ()
+    {
+      $t.remove();
+    }, 500);
+  }
+}
+
 (function ($)
 {
   "use strict";
 
+  var messages = typeof window.cpcmAdmin === "object" ? window.cpcmAdmin : {};
+
+  // Initialize save/reset buttons state
   $(document).ready(function ()
   {
-    /**
-     * Toast Notification System
-     */
-    function showNotification(message, type = "info")
-    {
-      var $container = $(".cpcm-notifications-container");
-      if ($container.length === 0)
-      {
-        $container = $('<div class="cpcm-notifications-container"></div>').appendTo("body");
-      }
+    $(".cpcm-btn-save-all").addClass("disabled").prop("disabled", true);
+    $(".cpcm-btn-reset-fields").prop("disabled", true);
 
-      var icons = {
-        success: "yes",
-        error: "warning",
-        info: "info",
-      };
-
-      var icon = icons[type] || "info";
-
-      var $toast = $(
-        '<div class="cpcm-toast cpcm-toast-' + type + '">' +
-        '<div class="cpcm-toast-icon"><span class="dashicons dashicons-' + icon + '"></span></div>' +
-        '<div class="cpcm-toast-content"><p class="cpcm-toast-message">' + message + "</p></div>" +
-        '<div class="cpcm-toast-close"><span class="dashicons dashicons-no-alt"></span></div>' +
-        '<div class="cpcm-toast-progress"></div>' +
-        "</div>"
-      );
-
-      $container.append($toast);
-
-      // Trigger animation
-      setTimeout(function ()
-      {
-        $toast.addClass("active");
-      }, 10);
-
-      // Auto remove after 5 seconds
-      var timeout = setTimeout(function ()
-      {
-        removeToast($toast);
-      }, 5000);
-
-      // Close button
-      $toast.find(".cpcm-toast-close").on("click", function ()
-      {
-        clearTimeout(timeout);
-        removeToast($toast);
-      });
-
-      function removeToast($t)
-      {
-        $t.removeClass("active");
-        setTimeout(function ()
-        {
-          $t.remove();
-        }, 500);
-      }
-    }
-
+    // On submit: show saving state and prevent double submit
+    $('#cpcm-main-save-form').on('submit', function(){
+      var $btn = $('.cpcm-btn-save-all');
+      $btn.prop('disabled', true).addClass('disabled is-loading')
+          .html('<span class="dashicons dashicons-update cpcm-spin"></span> Saving...');
+    });
     /**
      * Modal Handling Variables
      */
@@ -134,9 +146,16 @@
     {
       e.preventDefault();
       var $row = $(this).closest("tr");
+      var fieldKey = $row.data("field-key");
       var fieldName = $(this).data("field-name");
+      var inUse = $row.data("in-use") == 1;
+      if (inUse)
+      {
+        showNotification(messages.fieldCannotDelete || "لا يمكن حذف هذا الحقل لأنه مستخدم داخل محتوى الصفحة.", "error");
+        return;
+      }
       var confirmMessage =
-        cpcmAdmin.confirmDelete ||
+        messages.confirmDelete ||
         "Are you sure you want to delete this field?";
 
       if (fieldName)
@@ -146,19 +165,62 @@
 
       if (confirm(confirmMessage))
       {
-        $row.fadeOut(300, function ()
-        {
-          $(this).remove();
-          updateEmptyState();
-        });
+        // Mark the row for deletion
+        $row.addClass("cpcm-marked-for-deletion");
+        
+        // Add a hidden input to track fields to be deleted
+        if ($('#cpcm_fields_to_delete').length === 0) {
+          $('form#cpcm-main-save-form').append('<input type="hidden" name="cpcm_fields_to_delete" id="cpcm_fields_to_delete" value="">');
+        }
+        
+        // Add this field to the list of fields to delete
+        var fieldsToDelete = $('#cpcm_fields_to_delete').val().split(',').filter(Boolean);
+        if (!fieldsToDelete.includes(fieldKey)) {
+          fieldsToDelete.push(fieldKey);
+          $('#cpcm_fields_to_delete').val(fieldsToDelete.join(','));
+        }
+        
+        // Update UI to show the row is marked for deletion
+        $row.find('td').css('opacity', '0.5');
+        $row.find('.cpcm-btn-delete-local')
+          .html('<span class="dashicons dashicons-undo"></span> Undo')
+          .removeClass('cpcm-btn-delete-local')
+          .addClass('cpcm-undo-delete');
+          
         trackChanges();
-        showNotification("Field removed from list (Save to persist)", "info");
+        showNotification(messages.fieldMarkedForDeletion || "Field will be deleted when you save changes", "warning");
       }
+    });
+    
+    // Handle undo delete
+    $(document).on('click', '.cpcm-undo-delete', function(e) {
+      e.preventDefault();
+      var $row = $(this).closest('tr');
+      var fieldKey = $row.data('field-key');
+      
+      // Remove from deletion list
+      var fieldsToDelete = $('#cpcm_fields_to_delete').val().split(',').filter(Boolean);
+      fieldsToDelete = fieldsToDelete.filter(function(f) { return f !== fieldKey; });
+      $('#cpcm_fields_to_delete').val(fieldsToDelete.join(','));
+      
+      // Update UI
+      $row.removeClass('cpcm-marked-for-deletion');
+      $row.find('td').css('opacity', '1');
+      $row.find('.cpcm-undo-delete')
+        .html('<span class="dashicons dashicons-trash"></span>')
+        .removeClass('cpcm-undo-delete')
+        .addClass('cpcm-btn-delete-local');
+        
+      trackChanges();
+      showNotification(messages.fieldDeletionUndone || "Deletion cancelled for this field.", "info");
     });
 
     function updateEmptyState()
     {
-      if ($("#cpcm-fields-tbody tr").length === 0)
+      // Count only rows that are not marked for deletion
+      var visibleRows = $("#cpcm-fields-tbody tr").not('.cpcm-marked-for-deletion');
+      
+      if (visibleRows.length === 0)
       {
         $("#cpcm-fields-container").hide();
         $("#cpcm-empty-state-wrapper").fadeIn();
@@ -169,8 +231,7 @@
       }
 
       // Update count text
-      var count = $("#cpcm-fields-tbody tr").length;
-      $(".cpcm-fields-count-text").text("Existing Fields (" + count + ")");
+      $(".cpcm-fields-count-text").text("Existing Fields (" + visibleRows.length + ")");
     }
 
     /**
@@ -345,10 +406,27 @@
 
     function trackChanges()
     {
-      hasChanges = true;
-      $saveButton.prop("disabled", false);
-      $resetButton.prop("disabled", false);
+      setHasChanges(true);
     }
+
+    function setHasChanges(state)
+    {
+      hasChanges = !!state;
+      if (hasChanges)
+      {
+        $saveButton.prop("disabled", false).removeClass("disabled");
+        $resetButton.prop("disabled", false);
+      } else
+      {
+        $saveButton.prop("disabled", true).addClass("disabled");
+        $resetButton.prop("disabled", true);
+      }
+    }
+
+    // Mark changes on common interactions within the table
+    $(document).on('input change', '#cpcm-fields-tbody input, #cpcm-fields-tbody select, #cpcm-fields-tbody textarea', function(){
+      trackChanges();
+    });
 
     /**
      * Reset Functionality
@@ -378,7 +456,7 @@
 
       if (!name)
       {
-        showNotification("Please enter a field name.", "error");
+        showNotification(messages.fieldNameRequired || "Please enter a field name.", "error");
         return;
       }
 
@@ -392,6 +470,7 @@
       if ($('tr[data-field-key="' + key + '"]').length > 0)
       {
         showNotification(
+          messages.fieldAlreadyExists ||
           "A field with this name already exists locally.",
           "error"
         );
@@ -429,10 +508,11 @@
       var rowHtml = generateRowHtml(key, name, type, value, preview);
 
       $("#cpcm-fields-tbody").append(rowHtml);
+      $('tr[data-field-key="' + key + '"]').addClass('cpcm-new');
       updateEmptyState();
       closeModal();
       trackChanges();
-      showNotification("Field added to list (Save to persist)", "success");
+      showNotification(messages.fieldAddedTemp || "Field added to list (Save to persist)", "success");
 
       // Clear add form
       $("#add_field_name").val("");
@@ -500,7 +580,7 @@
 
       closeModal();
       trackChanges();
-      showNotification("Field updated in list (Save to persist)", "success");
+      showNotification(messages.fieldUpdatedTemp || "Field updated in list (Save to persist)", "success");
     });
 
     /**

@@ -2,7 +2,7 @@
 
 Professional WordPress plugin for managing custom fields on pages with multilingual support and image upload capabilities.
 
-**Version:** 2.0.0  
+**Version:** 2.2.0  
 **Author:** Yossef Weal (يوسف وائل)  
 **Author URI:** [https://portfolio-yossef-weal.netlify.app/](https://portfolio-yossef-weal.netlify.app/)  
 **License:** GPL-2.0+
@@ -17,8 +17,10 @@ Professional WordPress plugin for managing custom fields on pages with multiling
 - 📱 Fully responsive design
 - 🔄 RTL language support (Arabic, Hebrew, etc.)
 - 🎯 Enhanced shortcodes with size and class attributes
-- 🗑️ Safe field deletion with confirmation
+- 🗑️ Safe, undoable field deletion with save-to-confirm workflow
+- 🛡️ Automatic protection from deleting in-use fields
 - 📋 One-click shortcode copying
+- 🔔 Toast notifications with full localization (EN/AR)
 - 🔒 Security-first approach with nonces and capability checks
 - ❤️ Developer credits footer on all admin pages
 
@@ -168,7 +170,16 @@ content-manager/
 
 ## 📝 Changelog
 
-### Version 2.1.0 (Latest)
+### Version 2.2.0 (Latest)
+
+- ✅ محسّنات UX: إزالة الشريط السفلي واستبداله بتدفقات حفظ أوضح
+- ✅ تنبيهات Toast مترجمة بالكامل مع دعم العربية والإنجليزية
+- ✅ منطق متقدّم للحذف: منع حذف الحقول المستخدمة مع رسائل توضيحية
+- ✅ Workflow آمن للحذف مع إمكانية التراجع قبل الحفظ النهائي
+- ✅ إصلاح مشكلة "Save" المعطّل وضمان عدم فقدان تغييرات غير محفوظة
+- ✅ تحسينات الأداء والتنظيف عند حفظ الحقول المحذوفة
+
+### Version 2.1.0
 
 - ✅ **Elementor Integration** - Full support for Dynamic Tags
 - ✅ **Edit Feature** - Ability to edit field name and type

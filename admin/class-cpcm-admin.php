@@ -95,8 +95,15 @@ class CPCM_Admin {
             );
             
             wp_localize_script($this->plugin_name, 'cpcmAdmin', array(
-                'confirmDelete' => __('Are you sure you want to delete this field? This will also delete its value!', 'custom-page-content-manager'),
-                'copiedToClipboard' => __('Copied to clipboard!', 'custom-page-content-manager')
+                'confirmDelete'           => __('Are you sure you want to delete this field? This will also delete its value!', 'custom-page-content-manager'),
+                'copiedToClipboard'       => __('Copied to clipboard!', 'custom-page-content-manager'),
+                'fieldMarkedForDeletion'  => __('Field will be deleted when you save changes.', 'custom-page-content-manager'),
+                'fieldDeletionUndone'     => __('Deletion cancelled for this field.', 'custom-page-content-manager'),
+                'fieldCannotDelete'       => __('This field is used on the page content and cannot be deleted.', 'custom-page-content-manager'),
+                'fieldAddedTemp'          => __('Field added to list (Save to persist).', 'custom-page-content-manager'),
+                'fieldUpdatedTemp'        => __('Field updated in list (Save to persist).', 'custom-page-content-manager'),
+                'fieldNameRequired'       => __('Please enter a field name.', 'custom-page-content-manager'),
+                'fieldAlreadyExists'      => __('A field with this name already exists locally.', 'custom-page-content-manager')
             ));
         }
     }
@@ -191,6 +198,19 @@ class CPCM_Admin {
 
         check_admin_referer('cpcm_save_fields_' . $page_id);
 
+        $fields_to_delete = array();
+        if (isset($_POST['cpcm_fields_to_delete'])) {
+            $raw_delete_list = sanitize_text_field(wp_unslash($_POST['cpcm_fields_to_delete']));
+            if (!empty($raw_delete_list)) {
+                foreach (explode(',', $raw_delete_list) as $delete_key) {
+                    $delete_key = sanitize_key(trim($delete_key));
+                    if (!empty($delete_key)) {
+                        $fields_to_delete[] = $delete_key;
+                    }
+                }
+            }
+        }
+
         // 1. Rebuild Field Registry
         $new_fields_registry = array();
         if (isset($_POST['cpcm_field_registry']) && is_array($_POST['cpcm_field_registry'])) {
@@ -199,6 +219,12 @@ class CPCM_Admin {
                     'name' => sanitize_text_field($field_data['name']),
                     'type' => sanitize_text_field($field_data['type'])
                 );
+            }
+        }
+
+        if (!empty($fields_to_delete)) {
+            foreach ($fields_to_delete as $delete_key) {
+                unset($new_fields_registry[$delete_key]);
             }
         }
         

@@ -338,3 +338,8 @@ body.rtl .cpcm-btn-back {
 body.rtl .cpcm-subtitle {
   margin: 8px 44px 0 0;
 }
+
+/* Spinner utility (used in saving state) */
+.cpcm-spin { display: inline-block; animation: cpcm-rotate 1s linear infinite; }
+@keyframes cpcm-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+

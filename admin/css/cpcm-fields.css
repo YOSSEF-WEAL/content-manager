@@ -499,10 +499,34 @@
 }
 
 .cpcm-fields-table .cpcm-btn-delete,
-.cpcm-fields-table .cpcm-btn-delete-local {
+/* Deletion styles */
+.cpcm-fields-table tr.cpcm-marked-for-deletion {
+  position: relative;
+  background-color: #fff9f9 !important;
+}
+
+.cpcm-fields-table tr.cpcm-marked-for-deletion td {
+  position: relative;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.cpcm-fields-table .cpcm-btn-delete-local,
+.cpcm-fields-table .cpcm-undo-delete {
   color: #dc2626 !important;
   background-color: #fef2f2 !important;
   border-color: #fca5a5 !important;
+  transition: all 0.2s ease;
+}
+
+.cpcm-fields-table .cpcm-undo-delete {
+  color: #1d4ed8 !important;
+  background-color: #eff6ff !important;
+  border-color: #93c5fd !important;
+}
+
+.cpcm-fields-table .cpcm-undo-delete:hover {
+  background-color: #dbeafe !important;
 }
 
 .cpcm-fields-table .cpcm-btn-delete:hover,

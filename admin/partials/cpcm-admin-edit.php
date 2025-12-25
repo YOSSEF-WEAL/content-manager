@@ -129,8 +129,18 @@ if (isset($_GET['message'])) {
                         </thead>
                         <tbody id="cpcm-fields-tbody">
                             <?php if (!empty($fields)): ?>
-                                <?php foreach ($fields as $field_key => $field): ?>
-                                <tr data-field-key="<?php echo esc_attr($field_key); ?>">
+                                <?php 
+                                $page_content = get_post_field('post_content', $page_id);
+                                foreach ($fields as $field_key => $field): 
+                                    $in_use = false;
+                                    if (!empty($page_content) && strpos($page_content, '[cpcm_field') !== false) {
+                                        // naive check for this specific field key usage in shortcodes
+                                        if (strpos($page_content, 'field="' . $field_key . '"') !== false) {
+                                            $in_use = true;
+                                        }
+                                    }
+                                ?>
+                                <tr data-field-key="<?php echo esc_attr($field_key); ?>" data-in-use="<?php echo $in_use ? '1' : '0'; ?>">
                                     <td class="cpcm-td-name">
                                         <strong><?php echo esc_html($field['name']); ?></strong>
                                         <input type="hidden" name="cpcm_field_registry[<?php echo esc_attr($field_key); ?>][name]" value="<?php echo esc_attr($field['name']); ?>">
