@@ -3,7 +3,7 @@
  * Plugin Name: Custom Page Content Manager
  * Plugin URI: https://portfolio-yossef-weal.netlify.app/
  * Description: Professional plugin to manage custom fields for WordPress pages with multilingual support
- * Version: 2.2.1
+ * Version: 2.2.2
  * Author: Yossef Weal
  * Author URI: https://portfolio-yossef-weal.netlify.app/
  * Text Domain: custom-page-content-manager
