@@ -148,7 +148,7 @@ class CPCM_Admin {
     public function add_admin_menu() {
         add_menu_page(
             __('Page Content Manager', 'custom-page-content-manager'),
-            __('Page Content', 'custom-page-content-manager'),
+            __('Page Content (CPCM)', 'custom-page-content-manager'),
             'manage_options',
             'page-content-manager',
             array($this, 'display_admin_page'),
