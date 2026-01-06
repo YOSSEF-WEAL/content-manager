@@ -67,6 +67,12 @@ class CPCM_Core {
         // Load Elementor integration
         require_once CPCM_PLUGIN_DIR . 'includes/elementor/class-cpcm-elementor-integration.php';
 
+        // Load GitHub updater
+        require_once CPCM_PLUGIN_DIR . 'includes/class-cpcm-github-updater.php';
+        if (class_exists('CPCM_GitHub_Updater')) {
+            CPCM_GitHub_Updater::init();
+        }
+
         $this->loader = new CPCM_Loader();
     }
 
