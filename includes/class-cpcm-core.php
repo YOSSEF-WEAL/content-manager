@@ -50,6 +50,7 @@ class CPCM_Core {
         $this->define_admin_hooks();
         $this->define_public_hooks();
         $this->init_elementor_integration();
+        $this->init_shortcode_converter();
     }
 
     /**
@@ -66,6 +67,10 @@ class CPCM_Core {
 
         // Load Elementor integration
         require_once CPCM_PLUGIN_DIR . 'includes/elementor/class-cpcm-elementor-integration.php';
+
+        // Load Shortcode Converter for attribute processing
+        // تحميل محول الـ Shortcodes لمعالجة الـ attributes
+        require_once CPCM_PLUGIN_DIR . 'includes/class-cpcm-shortcode-converter.php';
 
         // Load GitHub updater
         require_once CPCM_PLUGIN_DIR . 'includes/class-cpcm-github-updater.php';
@@ -129,6 +134,19 @@ class CPCM_Core {
     private function init_elementor_integration() {
         // Initialize Elementor integration
         new CPCM_Elementor_Integration();
+    }
+
+    /**
+     * Initialize Shortcode Converter for processing shortcodes in HTML attributes.
+     * تهيئة محول الـ Shortcodes لمعالجة الـ Shortcodes في الـ HTML attributes
+     *
+     * @since    2.3.0
+     * @access   private
+     */
+    private function init_shortcode_converter() {
+        // Initialize Shortcode Converter (only on frontend)
+        // تهيئة محول الـ Shortcodes (فقط في الواجهة الأمامية)
+        new CPCM_Shortcode_Converter();
     }
 
     /**
