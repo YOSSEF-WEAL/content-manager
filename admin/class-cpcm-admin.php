@@ -274,7 +274,8 @@ class CPCM_Admin {
                     if ($field_type === 'longtext') {
                         $sanitized_value = sanitize_textarea_field($field_value);
                     } else {
-                        $sanitized_value = sanitize_text_field($field_value);
+                        // Check if the value is a URL to preserve URL-encoded characters (like Arabic)
+                        $sanitized_value = $this->sanitize_field_value($field_value);
                     }
                     
                     update_post_meta($page_id, 'cpcm_' . sanitize_key($field_key), $sanitized_value);
@@ -346,7 +347,7 @@ class CPCM_Admin {
                 $field_value = '';
                 switch ($field_type) {
                     case 'text':
-                        $field_value = isset($_POST['field_value_text']) ? sanitize_text_field($_POST['field_value_text']) : '';
+                        $field_value = isset($_POST['field_value_text']) ? $this->sanitize_field_value($_POST['field_value_text']) : '';
                         break;
                     case 'longtext':
                         $field_value = isset($_POST['field_value_longtext']) ? sanitize_textarea_field($_POST['field_value_longtext']) : '';
@@ -457,7 +458,7 @@ class CPCM_Admin {
                 $field_value = '';
                 switch ($field_type) {
                     case 'text':
-                        $field_value = isset($_POST['field_value_text']) ? sanitize_text_field($_POST['field_value_text']) : '';
+                        $field_value = isset($_POST['field_value_text']) ? $this->sanitize_field_value($_POST['field_value_text']) : '';
                         break;
                     case 'longtext':
                         $field_value = isset($_POST['field_value_longtext']) ? sanitize_textarea_field($_POST['field_value_longtext']) : '';
@@ -588,5 +589,48 @@ class CPCM_Admin {
         }
 
         return $translations;
+    }
+
+    /**
+     * Sanitize field value, preserving URLs with non-ASCII characters.
+     *
+     * @since    2.4.0
+     * @param    string    $value    The field value to sanitize.
+     * @return   string    The sanitized value.
+     */
+    private function sanitize_field_value($value) {
+        if (empty($value)) {
+            return '';
+        }
+
+        $trimmed_value = trim($value);
+        
+        // Check if the value looks like a URL
+        // URLs typically start with http:// or https://
+        // Also check for URL-encoded characters (%) which are common in URLs with non-ASCII characters (like Arabic)
+        $is_url = false;
+        
+        // Check if it starts with http:// or https://
+        if (preg_match('/^https?:\/\//i', $trimmed_value)) {
+            $is_url = true;
+        }
+        // Check if it contains URL-encoded characters (%) - common in URLs with Arabic/non-ASCII characters
+        elseif (strpos($trimmed_value, '%') !== false) {
+            // If it contains URL-encoded characters, it's likely a URL or URL path
+            $is_url = true;
+        }
+        // Try to validate as URL (this handles most standard URLs)
+        elseif (filter_var($trimmed_value, FILTER_VALIDATE_URL) !== false) {
+            $is_url = true;
+        }
+        
+        if ($is_url) {
+            // Use esc_url_raw to preserve URL-encoded characters (like Arabic)
+            // esc_url_raw doesn't remove non-ASCII characters, it just sanitizes the URL structure
+            return esc_url_raw($trimmed_value);
+        }
+
+        // For non-URL values, use standard sanitization
+        return sanitize_text_field($value);
     }
 }

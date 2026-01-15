@@ -33,11 +33,13 @@ class CPCM_GitHub_Updater {
     /**
      * Clear the update cache on admin pages.
      * This ensures fresh update checks when users are in admin area.
+     * Note: Cache is now handled directly in get_latest_release() for better control.
      */
     public static function clear_cache_on_admin() {
-        // Only clear on plugins page or updates page
+        // Always clear cache on admin pages to ensure fresh checks
+        // This is a backup - main logic is in get_latest_release()
         global $pagenow;
-        if (in_array($pagenow, array('plugins.php', 'update-core.php', 'index.php'))) {
+        if (is_admin() && in_array($pagenow, array('plugins.php', 'update-core.php', 'index.php', 'admin.php'))) {
             delete_transient(self::CACHE_KEY);
         }
     }
@@ -56,6 +58,18 @@ class CPCM_GitHub_Updater {
             return $transient;
         }
 
+        $plugin_basename = defined('CPCM_PLUGIN_BASENAME') ? CPCM_PLUGIN_BASENAME : plugin_basename(__FILE__);
+
+        // Initialize response array if not exists
+        if (!isset($transient->response)) {
+            $transient->response = array();
+        }
+
+        // Remove any old update entries for this plugin to prevent stale updates
+        if (isset($transient->response[$plugin_basename])) {
+            unset($transient->response[$plugin_basename]);
+        }
+
         $latest = self::get_latest_release();
         if (!$latest || empty($latest['tag_name'])) {
             return $transient;
@@ -64,12 +78,16 @@ class CPCM_GitHub_Updater {
         // Remove 'v' prefix from tag name for version comparison
         $new_version = ltrim($latest['tag_name'], 'vV');
         
+        // Clean and normalize versions for comparison
+        // Remove leading/trailing whitespace and ensure proper format
+        $new_version = trim($new_version);
+        $current_version_clean = trim($current_version);
+        
         // Only show update if new version is greater than current
-        if (version_compare($new_version, $current_version, '<=')) {
+        // version_compare handles version strings properly (e.g., "2.3.0" vs "2.3.1")
+        if (version_compare($new_version, $current_version_clean, '<=')) {
             return $transient;
         }
-
-        $plugin_basename = defined('CPCM_PLUGIN_BASENAME') ? CPCM_PLUGIN_BASENAME : plugin_basename(__FILE__);
 
         // Build update object
         $update = new stdClass();
@@ -80,11 +98,6 @@ class CPCM_GitHub_Updater {
         $update->package = sprintf(self::ZIP_URL, $latest['tag_name']);
         $update->tested = get_bloginfo('version');
         $update->requires_php = '7.4';
-
-        // Initialize response array if not exists
-        if (!isset($transient->response)) {
-            $transient->response = array();
-        }
 
         $transient->response[$plugin_basename] = $update;
         return $transient;
@@ -123,15 +136,29 @@ class CPCM_GitHub_Updater {
 
     /**
      * Get the latest release from GitHub API.
-     * Uses short-term caching to reduce API calls.
+     * Always fetches fresh data in admin area (no cache).
+     * Uses short-term caching only on frontend to reduce API calls.
      */
     private static function get_latest_release() {
-        // Check cache first (only if not in admin)
-        if (!is_admin()) {
+        // Always fetch fresh data in admin area (especially on plugins page)
+        $is_admin_page = is_admin();
+        $is_plugins_page = false;
+        
+        if ($is_admin_page) {
+            global $pagenow;
+            // Check if we're on plugins page or update page
+            $is_plugins_page = in_array($pagenow, array('plugins.php', 'update-core.php', 'index.php'));
+        }
+        
+        // Only use cache on frontend (not in admin)
+        if (!$is_admin_page) {
             $cached = get_transient(self::CACHE_KEY);
             if ($cached !== false) {
                 return $cached;
             }
+        } else {
+            // In admin, always delete cache to ensure fresh check
+            delete_transient(self::CACHE_KEY);
         }
 
         // Make API request to GitHub
@@ -158,8 +185,11 @@ class CPCM_GitHub_Updater {
             return false;
         }
 
-        // Cache the result
-        set_transient(self::CACHE_KEY, $data, self::CACHE_TTL);
+        // Only cache on frontend, not in admin
+        if (!$is_admin_page) {
+            set_transient(self::CACHE_KEY, $data, self::CACHE_TTL);
+        }
+        
         return $data;
     }
 
@@ -193,7 +223,19 @@ class CPCM_GitHub_Updater {
      */
     public static function after_upgrade($upgrader, $hook_extra) {
         if (!empty($hook_extra['type']) && $hook_extra['type'] === 'plugin') {
-            delete_transient(self::CACHE_KEY);
+            $plugin_basename = defined('CPCM_PLUGIN_BASENAME') ? CPCM_PLUGIN_BASENAME : '';
+            
+            // Check if our plugin was updated
+            if (!empty($hook_extra['plugin']) && $hook_extra['plugin'] === $plugin_basename) {
+                delete_transient(self::CACHE_KEY);
+                
+                // Clear WordPress update cache to remove stale update notifications
+                $update_transient = get_site_transient('update_plugins');
+                if (is_object($update_transient) && isset($update_transient->response[$plugin_basename])) {
+                    unset($update_transient->response[$plugin_basename]);
+                    set_site_transient('update_plugins', $update_transient);
+                }
+            }
         }
     }
 }
