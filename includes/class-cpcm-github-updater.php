@@ -115,20 +115,66 @@ class CPCM_GitHub_Updater {
         $version = $latest && !empty($latest['tag_name']) ? ltrim($latest['tag_name'], 'vV') : (defined('CPCM_VERSION') ? CPCM_VERSION : '');
         $last_updated = $latest && !empty($latest['published_at']) ? $latest['published_at'] : '';
         $changelog = $latest && !empty($latest['body']) ? $latest['body'] : '';
+        
+        // Format release date
+        $formatted_date = '';
+        if ($last_updated) {
+            $date = date_i18n(get_option('date_format'), strtotime($last_updated));
+            $time = date_i18n(get_option('time_format'), strtotime($last_updated));
+            $formatted_date = sprintf(__('Released on %s at %s', 'custom-page-content-manager'), $date, $time);
+        }
 
         $info = new stdClass();
         $info->name = 'Custom Page Content Manager';
         $info->slug = 'custom-page-content-manager';
         $info->version = $version;
         $info->author = '<a href="https://portfolio-yossef-weal.netlify.app/">Yossef Weal</a>';
+        $info->author_profile = 'https://portfolio-yossef-weal.netlify.app/';
         $info->homepage = self::REPO_URL;
         $info->download_link = $latest && !empty($latest['tag_name']) ? sprintf(self::ZIP_URL, $latest['tag_name']) : '';
-        $info->last_updated = $last_updated;
+        $info->last_updated = $formatted_date ? $formatted_date : $last_updated;
         $info->tested = get_bloginfo('version');
+        $info->requires = '5.0';
         $info->requires_php = '7.4';
+        $info->compatibility = array();
+        $info->rating = 0;
+        $info->num_ratings = 0;
+        $info->downloaded = 0;
+        $info->active_installs = 0;
+        
+        // Build detailed description
+        $description = 'Professional plugin to manage custom fields for WordPress pages with multilingual support.';
+        if ($latest && !empty($latest['name'])) {
+            $description .= "\n\n" . __('Latest Release:', 'custom-page-content-manager') . ' ' . esc_html($latest['name']);
+        }
+        
+        // Build changelog with release details
+        $changelog_content = '';
+        if ($latest) {
+            if (!empty($latest['name'])) {
+                $changelog_content .= '<h3>' . esc_html($latest['name']) . '</h3>';
+            }
+            if ($formatted_date) {
+                $changelog_content .= '<p><strong>' . __('Release Date:', 'custom-page-content-manager') . '</strong> ' . esc_html($formatted_date) . '</p>';
+            }
+            if (!empty($latest['tag_name'])) {
+                $changelog_content .= '<p><strong>' . __('Version:', 'custom-page-content-manager') . '</strong> ' . esc_html(ltrim($latest['tag_name'], 'vV')) . '</p>';
+            }
+            if (!empty($latest['body'])) {
+                $changelog_content .= '<div class="cpcm-changelog-body">' . nl2br(esc_html($latest['body'])) . '</div>';
+            }
+            if (!empty($latest['html_url'])) {
+                $changelog_content .= '<p><a href="' . esc_url($latest['html_url']) . '" target="_blank">' . __('View on GitHub', 'custom-page-content-manager') . '</a></p>';
+            }
+        }
+        
+        if (empty($changelog_content) && $changelog) {
+            $changelog_content = nl2br(esc_html($changelog));
+        }
+        
         $info->sections = array(
-            'description' => 'Professional plugin to manage custom fields for WordPress pages with multilingual support.',
-            'changelog' => nl2br(esc_html($changelog)),
+            'description' => $description,
+            'changelog' => $changelog_content ? $changelog_content : __('No changelog available.', 'custom-page-content-manager'),
         );
 
         return $info;
