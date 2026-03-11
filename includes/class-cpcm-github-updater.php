@@ -36,10 +36,8 @@ class CPCM_GitHub_Updater {
      * Note: Cache is now handled directly in get_latest_release() for better control.
      */
     public static function clear_cache_on_admin() {
-        // Always clear cache on admin pages to ensure fresh checks
-        // This is a backup - main logic is in get_latest_release()
-        global $pagenow;
-        if (is_admin() && in_array($pagenow, array('plugins.php', 'update-core.php', 'index.php', 'admin.php'))) {
+        // Only clear cache on explicit force-check requests to avoid GitHub API rate limits.
+        if (is_admin() && isset($_GET['force-check']) && $_GET['force-check'] === '1') {
             delete_transient(self::CACHE_KEY);
         }
     }
@@ -186,24 +184,15 @@ class CPCM_GitHub_Updater {
      * Uses short-term caching only on frontend to reduce API calls.
      */
     private static function get_latest_release() {
-        // Always fetch fresh data in admin area (especially on plugins page)
-        $is_admin_page = is_admin();
-        $is_plugins_page = false;
-        
-        if ($is_admin_page) {
-            global $pagenow;
-            // Check if we're on plugins page or update page
-            $is_plugins_page = in_array($pagenow, array('plugins.php', 'update-core.php', 'index.php'));
-        }
-        
-        // Only use cache on frontend (not in admin)
-        if (!$is_admin_page) {
+        $force_refresh = is_admin() && isset($_GET['force-check']) && $_GET['force-check'] === '1';
+
+        // Use transient cache on both frontend and admin to avoid API throttling.
+        if (!$force_refresh) {
             $cached = get_transient(self::CACHE_KEY);
             if ($cached !== false) {
                 return $cached;
             }
         } else {
-            // In admin, always delete cache to ensure fresh check
             delete_transient(self::CACHE_KEY);
         }
 
@@ -217,26 +206,36 @@ class CPCM_GitHub_Updater {
         ));
 
         if (is_wp_error($response)) {
+            self::log_debug('GitHub request failed: ' . $response->get_error_message());
             return false;
         }
 
         $code = wp_remote_retrieve_response_code($response);
         if ($code !== 200) {
+            $remaining = wp_remote_retrieve_header($response, 'x-ratelimit-remaining');
+            self::log_debug('GitHub API returned HTTP ' . $code . '. Remaining rate limit: ' . $remaining);
             return false;
         }
 
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
         if (!is_array($data)) {
+            self::log_debug('GitHub API response is not valid JSON.');
             return false;
         }
 
-        // Only cache on frontend, not in admin
-        if (!$is_admin_page) {
-            set_transient(self::CACHE_KEY, $data, self::CACHE_TTL);
-        }
+        set_transient(self::CACHE_KEY, $data, self::CACHE_TTL);
         
         return $data;
+    }
+
+    /**
+     * Log updater diagnostics only when WP_DEBUG is enabled.
+     */
+    private static function log_debug($message) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[CPCM Updater] ' . $message);
+        }
     }
 
     /**
