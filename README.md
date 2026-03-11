@@ -2,7 +2,7 @@
 
 Professional WordPress plugin for managing custom fields on pages with multilingual support and image upload capabilities.
 
-**Version:** 2.2.0  
+**Version:** 2.4.1  
 **Author:** Yossef Weal (يوسف وائل)  
 **Author URI:** [https://portfolio-yossef-weal.netlify.app/](https://portfolio-yossef-weal.netlify.app/)  
 **License:** GPL-2.0+

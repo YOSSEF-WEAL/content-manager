@@ -253,9 +253,17 @@ class CPCM_GitHub_Updater {
             return $source;
         }
 
+        // Fresh installs can have an empty plugin key; guard by source directory name.
+        if (empty($hook_extra['plugin'])) {
+            $source_basename = basename(rtrim($source, '/\\'));
+            if (strpos($source_basename, 'content-manager') !== 0) {
+                return $source;
+            }
+        }
+
         // Rename to match expected plugin folder name
-        $target_dir_name = basename(dirname(CPCM_PLUGIN_DIR)); // content-manager
-        $new_source = trailingslashit(dirname($source)) . $target_dir_name . '/';
+        $target_dir_name = basename(rtrim(CPCM_PLUGIN_DIR, '/\\'));
+        $new_source = trailingslashit(dirname(rtrim($source, '/\\'))) . $target_dir_name . '/';
 
         if (@rename($source, $new_source)) {
             return $new_source;
